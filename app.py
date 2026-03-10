@@ -1,7 +1,10 @@
 import streamlit as st
+import pandas as pd
 from model_engine import get_data_insights, predict_placement
+from model_engine import load_data_from_csv, filter_dataframe, calculate_skill_gaps
 import auth_db as db
 import re
+
 
 
 st.set_page_config(
@@ -122,8 +125,64 @@ def display_dashboard():
             st.session_state['active_module'] = "Home"
             st.rerun()
             
+        
+        
         st.title("Skill Gap Analysis")
-        st.info("This section is currently under development.")
+        st.write("Analyze the gap between your current skills and industry requirements.")
+        
+        # 1. FIXED: Indented the try/except block inside the function
+        def load_data():
+            file_path = "Dataset_company_job roles.csv" 
+            try:
+                return load_data_from_csv(file_path)
+            except FileNotFoundError:
+                st.error(f"Error: The file '{file_path}' was not found. Please check the filename in your folder.")
+                return pd.DataFrame()
+
+        # 2. FIXED: Indented ALL following code so it only runs when in the "Success" module
+        df = load_data()
+
+        # Stop execution if data isn't loaded properly
+        if df.empty:
+            st.stop()
+
+        # Sidebar Filters
+        st.sidebar.header("Filter Options")
+        target_company = st.sidebar.selectbox("Select Target Company", ["All"] + list(df['Company'].unique()))
+        target_role = st.sidebar.selectbox("Select Target Role", ["All"] + list(df['Job Role'].unique()))
+
+        # User Skill Input
+        st.subheader("🛠 Your Skill Profile")
+        user_skills_input = st.text_input("Enter your current skills (separated by commas):", "Python, SQL, Excel")
+        user_skills = [s.strip().lower() for s in user_skills_input.split(",")]
+
+        # Pass Data to Backend Logic
+        filtered_df = filter_dataframe(df, target_company, target_role)
+        analyzed_df = calculate_skill_gaps(filtered_df, user_skills)
+
+        # Display Results
+        if not analyzed_df.empty:
+            st.subheader("📈 Opportunities & Skill Gaps")
+            st.dataframe(
+                analyzed_df[['Company', 'Job Role', 'Skills Needed', 'Match Score', 'Skills to Learn']],
+                use_container_width=True,
+                hide_index=True
+            )
+            
+            # Quick Insights
+            if target_role != "All":
+                st.divider()
+                st.subheader(f"Advice for {target_role} Role")
+                all_needed = analyzed_df['Skills to Learn'].iloc[0]
+                if all_needed:
+                    st.info(f"To become a competitive candidate for this role, focus on learning: **{all_needed}**")
+                else:
+                    st.success("You have all the required skills for this role! Ready to apply!")
+        else:
+            st.warning("No matching roles found for the selected filters.")
+            
+
+
 
 # --- MAIN APP LOGIC ---
 def main():
@@ -185,6 +244,12 @@ def main():
                     st.info(f"Reset logic triggered for {email_to_reset}")
     else:
         display_dashboard()
+
+
+
+
+
+
 
 if __name__ == '__main__':
     main()
