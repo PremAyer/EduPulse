@@ -33,4 +33,12 @@ def train_and_save_models(data_path):
     print("Saved placement classifier.")
 
 
+    # 2. Train Regression Model (Salary Prediction - only on PLACED students)
+    placed_df = df[df['placement_status'].str.strip().str.lower() == 'placed']
+    X_reg = placed_df[features]
+    y_reg = placed_df['salary_package_lpa']
+    
+
+
+
     
