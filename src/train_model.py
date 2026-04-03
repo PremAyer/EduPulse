@@ -20,4 +20,10 @@ def train_and_save_models(data_path):
     # 1. Train Classification Model (Placed vs Not Placed)
     # Convert 'Placed'/'Not Placed' to 1/0
     y = df['placement_status'].apply(lambda x: 1 if x.strip().lower() == 'placed' else 0)
+
+    X_train_c, X_test_c, y_train_c, y_test_c = train_test_split(X, y, test_size=0.2, random_state=42)
+    
+    classifier = RandomForestClassifier(n_estimators=100, random_state=42)
+    classifier.fit(X_train_c, y_train_c)
+
     
