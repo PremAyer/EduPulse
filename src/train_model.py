@@ -43,6 +43,16 @@ def train_and_save_models(data_path):
     regressor = RandomForestRegressor(n_estimators=100, random_state=42)
     regressor.fit(X_train_r, y_train_r)
 
+    preds_r = regressor.predict(X_test_r)
+    print(f"Regression RMSE: {mean_squared_error(y_test_r, preds_r, squared=False):.2f} LPA")
+    
+    joblib.dump(regressor, 'models/salary_regressor.pkl')
+    print("Saved salary regressor.")
+
+if __name__ == "__main__":
+    # Point this to your actual dataset file
+    train_and_save_models('data/cleaned_placement_data.csv')
+
     
     
 
