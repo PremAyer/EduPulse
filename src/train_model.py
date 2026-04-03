@@ -42,6 +42,8 @@ def train_and_save_models(data_path):
     
     regressor = RandomForestRegressor(n_estimators=100, random_state=42)
     regressor.fit(X_train_r, y_train_r)
+
+    
     
 
     
