@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
-from src.database.model_engine import get_data_insights, predict_placement
-from src.database.model_engine import load_data_from_csv, filter_dataframe, calculate_skill_gaps
+from src.model_engine import get_data_insights, predict_placement
+from src.model_engine import load_data_from_csv, filter_dataframe, calculate_skill_gaps
 import Authentication.auth_db as db
 import re
 
