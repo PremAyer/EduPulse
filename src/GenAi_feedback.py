@@ -34,6 +34,30 @@ Based on their profile and this prediction, write a supportive, personalized 1-2
 Keep the tone encouraging, professional, and clear.
 """
 
-    
+    prompt = PromptTemplate(
+        input_variables=["coding_score", "aptitude_score", "internships_count", "projects_count", "cgpa", "backlogs", "predicted_status", "predicted_salary"],
+        template=template
+    )
+
+    # Format the prompt with the data
+    formatted_prompt = prompt.format(
+        coding_score=student_data['coding_score'],
+        aptitude_score=student_data['aptitude_score'],
+        internships=student_data['internships_count'],
+        projects=student_data['projects_count'],
+        cgpa=student_data['cgpa'],
+        backlogs=student_data['backlogs'],
+        predicted_status=predicted_status,
+        predicted_salary=predicted_salary
+    )
+
+    # Call the Hugging Face model
+    response = llm.invoke(formatted_prompt)
+
+    # HuggingFaceEndpoint usually returns the raw text string directly
+    return response
+
+
+        
 
 
