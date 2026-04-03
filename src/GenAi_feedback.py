@@ -12,4 +12,28 @@ def get_feedback_from_llm(student_data, predicted_status, predicted_salary):
     max_new_tokens=300,
     temperature=0.7,
     )
+
+    template = """
+You are an expert career counselor and technical placement guide. 
+
+A student has the following academic profile:
+- Coding Score: {coding_score}/100
+- Aptitude Score: {aptitude_score}/100
+- Internships: {internships}
+- Projects: {projects}
+- CGPA: {cgpa}/10.0
+- Active Backlogs: {backlogs}
+
+Our Machine Learning model predicts this student will be: **{predicted_status}**.
+Estimated Salary Package: **{predicted_salary} LPA**.
+
+Based on their profile and this prediction, write a supportive, personalized 1-2 paragraph response to the student. 
+- If they are predicted to be placed, congratulate them and tell them what their strongest assets are.
+- If they are NOT predicted to be placed, empathize, and critically analyze their profile to pinpoint exactly what they are lacking (e.g., high backlogs, low coding score, lack of projects) and give actionable advice on how to improve.
+
+Keep the tone encouraging, professional, and clear.
+"""
+
     
+
+
