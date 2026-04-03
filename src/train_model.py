@@ -26,4 +26,11 @@ def train_and_save_models(data_path):
     classifier = RandomForestClassifier(n_estimators=100, random_state=42)
     classifier.fit(X_train_c, y_train_c)
 
+    preds_c = classifier.predict(X_test_c)
+    print(f"Classification Accuracy: {accuracy_score(y_test_c, preds_c) * 100:.2f}%")
+    
+    joblib.dump(classifier, 'models/placement_classifier.pkl')
+    print("Saved placement classifier.")
+
+
     
