@@ -23,7 +23,13 @@ def train_and_save_models(data_path):
 
     X_train_c, X_test_c, y_train_c, y_test_c = train_test_split(X, y, test_size=0.2, random_state=42)
     
-    classifier = RandomForestClassifier(n_estimators=100, random_state=42)
+    classifier = RandomForestClassifier(n_estimators=400,          # More trees for a better consensus
+    max_depth=10,              # Prevent trees from memorizing random noise
+    min_samples_split=5,       # Require stronger evidence to make a split
+    class_weight='balanced',   # Handle uneven Placed/Not Placed ratios
+    random_state=42,
+    n_jobs=-1
+)
     classifier.fit(X_train_c, y_train_c)
 
     preds_c = classifier.predict(X_test_c)
@@ -40,11 +46,15 @@ def train_and_save_models(data_path):
 
     X_train_r, X_test_r, y_train_r, y_test_r = train_test_split(X_reg, y_reg, test_size=0.2, random_state=42)
     
-    regressor = RandomForestRegressor(n_estimators=100, random_state=42)
+    regressor = RandomForestRegressor(n_estimators=400,          # More trees for a better consensus
+    max_depth=10,              # Prevent trees from memorizing random noise      
+    random_state=42,
+    n_jobs=-1
+)
     regressor.fit(X_train_r, y_train_r)
 
     preds_r = regressor.predict(X_test_r)
-    print(f"Regression RMSE: {mean_squared_error(y_test_r, preds_r, squared=False):.2f} LPA")
+    print(f"Regression RMSE: {mean_squared_error(y_test_r, preds_r) ** 0.5:.2f} LPA")
     
     joblib.dump(regressor, 'models/salary_regressor.pkl')
     print("Saved salary regressor.")

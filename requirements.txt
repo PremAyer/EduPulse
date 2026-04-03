@@ -6,5 +6,6 @@ numpy
 scikit-learn
 joblib
 python-dotenv
+langchain-google-genai
 langchain
-langchain-huggingface
+langchain-community
