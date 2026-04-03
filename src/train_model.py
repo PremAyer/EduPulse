@@ -37,6 +37,13 @@ def train_and_save_models(data_path):
     placed_df = df[df['placement_status'].str.strip().str.lower() == 'placed']
     X_reg = placed_df[features]
     y_reg = placed_df['salary_package_lpa']
+
+    X_train_r, X_test_r, y_train_r, y_test_r = train_test_split(X_reg, y_reg, test_size=0.2, random_state=42)
+    
+    regressor = RandomForestRegressor(n_estimators=100, random_state=42)
+    regressor.fit(X_train_r, y_train_r)
+    
+
     
 
 
