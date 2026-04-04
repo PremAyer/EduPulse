@@ -61,6 +61,45 @@ class CareerRecommender:
             confidence = max(probs) * 100
             
             return predicted_role, round(confidence, 2)
+    
+    
+    def analyze_company_fit(self, predicted_role, user_skills_str):
+        """Finds companies for the role and calculates exact missing skills."""
+        # Filter dataset for the predicted role
+        role_df = self.df[self.df['Job Role'] == predicted_role]
+        
+        # Clean user skills into a set for easy comparison
+        user_skills_set = set([s.strip().lower() for s in user_skills_str.split(',')])
+        
+        company_results = []
+        
+        for _, row in role_df.iterrows():
+            company = row['Company']
+            req_skills_str = str(row['Skills Needed'])
+            req_skills_set = set([s.strip().lower() for s in req_skills_str.split(',')])
+            
+            # Compare sets
+            matched = req_skills_set.intersection(user_skills_set)
+            missing = req_skills_set.difference(user_skills_set)
+            
+            # Calculate match percentage
+            score = (len(matched) / len(req_skills_set)) * 100 if req_skills_set else 0
+            
+            company_results.append({
+                'Company': company,
+                'Match Score': score,
+                'Formatted Score': f"{score:.0f}%",
+                'Required Skills': req_skills_str,
+                'Skills to Learn': ", ".join(missing).title() if missing else "None! You are ready."
+            })
+            
+        # Sort by best match score descending
+        company_results.sort(key=lambda x: x['Match Score'], reverse=True)
+        
+        # Return as a DataFrame for Streamlit
+        return pd.DataFrame(company_results).drop(columns=['Match Score'])
+
+  
 
 
 
