@@ -38,5 +38,11 @@ class CareerRecommender:
         ])
         
         self.model.fit(X, y)
+
+        # Save model
+        os.makedirs(os.path.dirname(self.model_path), exist_ok=True)
+        joblib.dump(self.model, self.model_path)
+        return True
+
         
 
