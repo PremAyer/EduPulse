@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 from dotenv import load_dotenv
-from src.career_engine import load_data_from_csv, filter_dataframe, calculate_skill_gaps, analyze_gap
+from src.career_engine import CareerRecommender
 from src.GenAi_feedback import get_feedback_from_llm
 from src.predictor import PlacementPredictor
 import src.Supabase as db
@@ -201,8 +201,7 @@ def display_dashboard():
         
         # Initialize the AI Engine
         try:
-            from src.career_engine import CareerRecommender
-            recommender = CareerRecommender()
+            recommender = CareerRecommender()  
         except FileNotFoundError:
             st.error("⚠️ Dataset not found. Please ensure 'Dataset_company_job roles.csv' is in the root directory.")
             st.stop()
@@ -262,7 +261,7 @@ def display_dashboard():
                                 "Missing Skills (Focus on these!)"
                             )
                         },
-                        use_container_width=True,
+                        width='stretch',
                         hide_index=True
                     )
 # --- MAIN APP LOGIC ---

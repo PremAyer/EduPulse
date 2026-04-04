@@ -68,29 +68,40 @@ class CareerRecommender:
         # Filter dataset for the predicted role
         role_df = self.df[self.df['Job Role'] == predicted_role]
         
-        # Clean user skills into a set for easy comparison
-        user_skills_set = set([s.strip().lower() for s in user_skills_str.split(',')])
+        # Removes all spaces and capitals from the user's input
+        user_skills_set = set([s.strip().lower().replace(" ", "") for s in user_skills_str.split(',')])      
         
         company_results = []
+
         
         for _, row in role_df.iterrows():
             company = row['Company']
             req_skills_str = str(row['Skills Needed'])
-            req_skills_set = set([s.strip().lower() for s in req_skills_str.split(',')])
             
-            # Compare sets
-            matched = req_skills_set.intersection(user_skills_set)
-            missing = req_skills_set.difference(user_skills_set)
+            # 1. Keep original capitalization for the UI
+            raw_req_skills = [s.strip().lower() for s in req_skills_str.split(',')]
             
-            # Calculate match percentage
-            score = (len(matched) / len(req_skills_set)) * 100 if req_skills_set else 0
+            matched_count = 0
+            missing_skills = []
+            
+            # 2. Check using lowercase, but save the original word
+            for req_skill in raw_req_skills:
+                # Removes spaces and capitals from the Excel data just for the check
+                if req_skill.lower().replace(" ", "") in user_skills_set:
+                    matched_count += 1
+                else:
+                    missing_skills.append(req_skill)
+            
+            # 3. Calculate match percentage
+            score = (matched_count / len(raw_req_skills)) * 100 if raw_req_skills else 0
             
             company_results.append({
                 'Company': company,
                 'Match Score': score,
                 'Formatted Score': f"{score:.0f}%",
                 'Required Skills': req_skills_str,
-                'Skills to Learn': ", ".join(missing).title() if missing else "None! You are ready."
+                # 4. Remove .title() so it doesn't mess up things like "MySQL" or "AI"
+                'Skills to Learn': ", ".join(missing_skills) if missing_skills else "None! You are ready."
             })
             
         # Sort by best match score descending
