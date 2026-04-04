@@ -9,3 +9,4 @@ python-dotenv
 langchain-google-genai
 langchain
 langchain-community
+openpyxl
