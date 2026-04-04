@@ -7,6 +7,8 @@ from src.predictor import PlacementPredictor
 import src.Supabase as db
 import re
 import streamlit as st
+import random
+from src.email_service import send_otp_email
 
 # Load environment variables
 load_dotenv("config/.env")
@@ -389,9 +391,66 @@ def main():
 
                 with tab_forgot:
                     st.write("")
-                    email_to_reset = st.text_input("Registered Email Address", key="f_email")
-                    if st.button("Send Recovery Token", use_container_width=True):
-                        st.info("Recovery protocols initiated. Check your inbox.")
+                    
+                    # Initialize session states for the password reset flow
+                    if 'reset_stage' not in st.session_state:
+                        st.session_state['reset_stage'] = 'request'
+
+                    # STAGE 1: Ask for Email
+                    if st.session_state['reset_stage'] == 'request':
+                        email_to_reset = st.text_input("Registered Email Address", key="f_email")
+                        
+                        if st.button("Send Recovery Token", use_container_width=True):
+                            if not email_to_reset.strip():
+                                st.warning("Please enter your email address.")
+                            else:
+                                with st.spinner("Generating secure token and contacting email servers..."):
+                                    # Generate a random 6-digit code
+                                    otp = str(random.randint(100000, 999999))
+                                    
+                                    # Send the email
+                                    email_sent = send_otp_email(email_to_reset, otp)
+                                    
+                                    if email_sent:
+                                        # Save the email and OTP in memory to check later
+                                        st.session_state['reset_email'] = email_to_reset
+                                        st.session_state['valid_otp'] = otp
+                                        st.session_state['reset_stage'] = 'verify'
+                                        st.rerun()
+                                    else:
+                                        st.error("System Error: Unable to send email. Contact Administrator.")
+
+                    # STAGE 2: Verify OTP and Reset
+                    elif st.session_state['reset_stage'] == 'verify':
+                        st.info(f"📧 Recovery token dispatched to **{st.session_state['reset_email']}**")
+                        
+                        entered_otp = st.text_input("Enter 6-Digit Recovery Token", max_chars=6)
+                        new_password = st.text_input("Create New Passphrase", type="password")
+                        
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            if st.button("Confirm Reset", use_container_width=True, type="primary"):
+                                if entered_otp == st.session_state['valid_otp']:
+                                    if len(new_password) < 4:
+                                        st.warning("Password too short.")
+                                    else:
+                                        # Hash new password and update database
+                                        new_hashed = db.make_hashes(new_password)
+                                        success = db.update_password(st.session_state['reset_email'], new_hashed)
+                                        
+                                        if success:
+                                            st.success("✅ Password successfully updated. Please return to the Login tab.")
+                                            # Reset the stage so the form goes back to normal
+                                            st.session_state['reset_stage'] = 'request'
+                                        else:
+                                            st.error("Database Error: Could not update password.")
+                                else:
+                                    st.error("❌ Invalid Recovery Token. Please try again.")
+                                    
+                        with col2:
+                            if st.button("Cancel", use_container_width=True):
+                                st.session_state['reset_stage'] = 'request'
+                                st.rerun()
                         
             st.markdown("<p style='text-align: center; font-size: 12px; opacity: 0.4; margin-top: 20px;'>Protected by EduPulse Security infrastructure.</p>", unsafe_allow_html=True)
     else:
