@@ -44,5 +44,25 @@ class CareerRecommender:
         joblib.dump(self.model, self.model_path)
         return True
 
+
+    def predict_role(self, user_skills_str):
+            """Predicts the best job role based on input skills."""
+            # Auto-train or load if not in memory
+            if self.model is None:
+                if os.path.exists(self.model_path):
+                    self.model = joblib.load(self.model_path)
+                else:
+                    self.train_model()
+
+            predicted_role = self.model.predict([user_skills_str])[0]
+            
+            # Get confidence score
+            probs = self.model.predict_proba([user_skills_str])[0]
+            confidence = max(probs) * 100
+            
+            return predicted_role, round(confidence, 2)
+
+
+
         
 
