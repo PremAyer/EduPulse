@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 from dotenv import load_dotenv
-from src.model_engine import load_data_from_csv, filter_dataframe, calculate_skill_gaps, analyze_gap
+from src.career_engine import load_data_from_csv, filter_dataframe, calculate_skill_gaps, analyze_gap
 from src.GenAi_feedback import get_feedback_from_llm
 from src.predictor import PlacementPredictor
 import src.Supabase as db
@@ -78,7 +78,7 @@ def display_dashboard():
             if st.button("Open Skill Upgrader Module"):
                 st.session_state['active_module'] = "Success"
                 st.rerun()
-                
+
 
     # --- VIEW 2: CDC MODULE (DASHBOARD) ---
     elif st.session_state['active_module'] == "CDC":
