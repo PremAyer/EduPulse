@@ -13,6 +13,7 @@ class CareerRecommender:
         self.df = None
         self._load_data()
 
+
     def _load_data(self):
         """Loads the dataset and standardizes column names."""
         if os.path.exists(self.data_path):
@@ -20,3 +21,22 @@ class CareerRecommender:
             self.df.columns = [c.strip() for c in self.df.columns]
         else:
             raise FileNotFoundError(f"Dataset not found at {self.data_path}")
+
+
+    def train_model(self):
+        """Trains the NLP model to predict Job Roles from Skills."""
+        if self.df is None: return False
+        
+        # X = Features (Skills string), y = Target (Job Role)
+        X = self.df['Skills Needed'].fillna('')
+        y = self.df['Job Role']
+        
+        # Pipeline: Convert text to numbers (TF-IDF) -> Predict with Random Forest
+        self.model = Pipeline([
+            ('tfidf', TfidfVectorizer(stop_words='english')),
+            ('clf', RandomForestClassifier(n_estimators=200, random_state=42))
+        ])
+        
+        self.model.fit(X, y)
+        
+
