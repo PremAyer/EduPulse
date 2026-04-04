@@ -18,4 +18,17 @@ def send_otp_email(receiver_email, otp_code):
     msg['To'] = receiver_email
     msg['Subject'] = "EduPulse System - Password Recovery"
 
+    # HTML Email Body for a professional look
+    body = f"""
+    <html>
+        <body>
+            <h2>EduPulse Password Recovery</h2>
+            <p>We received a request to reset your password. Here is your Secure Recovery Token:</p>
+            <h1 style="color: #007bff; letter-spacing: 5px;">{otp_code}</h1>
+            <p>Please enter this code in the application to create a new password. If you did not request this, please ignore this email.</p>
+        </body>
+    </html>
+    """
+    msg.attach(MIMEText(body, 'html'))
+
     
