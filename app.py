@@ -190,57 +190,81 @@ def display_dashboard():
                     
 
     # --- VIEW 3: SUCCESS MODULE (SKILL UPGRADER) ---
+    # --- VIEW 3: SUCCESS MODULE (SKILL UPGRADER / AI RECOMMENDER) ---
     elif st.session_state['active_module'] == "Success":
         if st.sidebar.button("← Back to Menu"):
             st.session_state['active_module'] = "Home"
             st.rerun()
             
-        st.title("Skill Gap Analysis")
-        st.write("Analyze the gap between your current skills and industry requirements.")
+        st.title("🚀 AI Career Path & Company Predictor")
+        st.write("Enter your current skills. Our AI will predict your ideal job role, suggest companies, and tell you exactly what you need to learn.")
         
-        def load_data():
-            file_path = "Dataset_company_job roles.csv" 
-            try:
-                return load_data_from_csv(file_path)
-            except FileNotFoundError:
-                st.error(f"Error: The file '{file_path}' was not found. Please check the filename in your folder.")
-                return pd.DataFrame()
-
-        df = load_data()
-
-        if df.empty:
+        # Initialize the AI Engine
+        try:
+            from src.career_engine import CareerRecommender
+            recommender = CareerRecommender()
+        except FileNotFoundError:
+            st.error("⚠️ Dataset not found. Please ensure 'Dataset_company_job roles.csv' is in the root directory.")
             st.stop()
 
-        st.sidebar.header("Filter Options")
-        target_company = st.sidebar.selectbox("Select Target Company", ["All"] + list(df['Company'].unique()))
-        target_role = st.sidebar.selectbox("Select Target Role", ["All"] + list(df['Job Role'].unique()))
-
         st.subheader("🛠 Your Skill Profile")
-        user_skills_input = st.text_input("Enter your current skills (separated by commas):", "Python, SQL, Excel")
-        user_skills = [s.strip().lower() for s in user_skills_input.split(",")]
+        user_skills_input = st.text_area(
+            "Enter your technical skills (separated by commas):", 
+            placeholder="e.g., Python, SQL, Excel, Pandas, Machine Learning"
+        )
+        
+        if st.button("Predict Role & Find Companies", type="primary"):
+            if not user_skills_input.strip():
+                st.warning("Please enter at least one skill.")
+            else:
+                with st.spinner("AI is analyzing your profile..."):
+                    # 1. Predict the Role
+                    predicted_role, confidence = recommender.predict_role(user_skills_input)
+                    
+                    # 2. Get Company Recommendations & Gaps
+                    company_analysis_df = recommender.analyze_company_fit(predicted_role, user_skills_input)
 
-        filtered_df = filter_dataframe(df, target_company, target_role)
-        analyzed_df = calculate_skill_gaps(filtered_df, user_skills)
-
-        if not analyzed_df.empty:
-            st.subheader("📈 Opportunities & Skill Gaps")
-            st.dataframe(
-                analyzed_df[['Company', 'Job Role', 'Skills Needed', 'Match Score', 'Skills to Learn']],
-                use_container_width=True,
-                hide_index=True
-            )
-            
-            if target_role != "All":
-                st.divider()
-                st.subheader(f"Advice for {target_role} Role")
-                all_needed = analyzed_df['Skills to Learn'].iloc[0]
-                if all_needed:
-                    st.info(f"To become a competitive candidate for this role, focus on learning: **{all_needed}**")
+                # --- DISPLAY RESULTS ---
+                st.markdown("---")
+                st.subheader("🎯 Prediction Results")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.metric("Predicted Ideal Job Role", predicted_role)
+                with col2:
+                    st.metric("AI Confidence Score", f"{confidence}%")
+                    
+                if confidence > 70:
+                    st.success(f"Based on your skills, you have a strong alignment with **{predicted_role}** roles!")
                 else:
-                    st.success("You have all the required skills for this role! Ready to apply!")
-        else:
-            st.warning("No matching roles found for the selected filters.")
+                    st.warning(f"Your skills lean towards **{predicted_role}**, but you need significant upskilling to secure this role.")
 
+                # --- DISPLAY COMPANIES & GAPS ---
+                st.markdown(f"### 🏢 Suggested Companies for {predicted_role}")
+                
+                if company_analysis_df.empty:
+                    st.info(f"No companies found currently hiring for {predicted_role} in the dataset.")
+                else:
+                    st.write("Here are the companies hiring for this role and the specific skills you still need to learn to get hired:")
+                    
+                    # Display the dataframe with highlighted columns
+                    st.dataframe(
+                        company_analysis_df,
+                        column_config={
+                            "Formatted Score": st.column_config.ProgressColumn(
+                                "Match Score",
+                                help="How closely your skills match this company's requirements",
+                                format="%f%%",
+                                min_value=0,
+                                max_value=100,
+                            ),
+                            "Skills to Learn": st.column_config.TextColumn(
+                                "Missing Skills (Focus on these!)"
+                            )
+                        },
+                        use_container_width=True,
+                        hide_index=True
+                    )
 # --- MAIN APP LOGIC ---
 def main():
     if 'logged_in' not in st.session_state:
