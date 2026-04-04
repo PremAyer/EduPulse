@@ -31,4 +31,14 @@ def send_otp_email(receiver_email, otp_code):
     """
     msg.attach(MIMEText(body, 'html'))
 
-    
+    try:
+        # Connect to Gmail's SMTP server
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, receiver_email, msg.as_string())
+        server.quit()
+        return True
+    except Exception as e:
+        print(f"SMTP Error: {e}")
+        return False
