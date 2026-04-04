@@ -54,9 +54,28 @@ def login_user(username, password):
     conn.close()
     return data
 
-def update_password(username, new_password):
-    conn = get_connection()
-    c = conn.cursor()
-    c.execute('UPDATE userstable SET password = %s WHERE username = %s', (new_password, username))
-    conn.commit()
-    conn.close()
+# def update_password(username, new_password):
+#     conn = get_connection()
+#     c = conn.cursor()
+#     c.execute('UPDATE userstable SET password = %s WHERE username = %s', (new_password, username))
+#     conn.commit()
+#     conn.close()
+
+def update_password(email, new_password):
+    """Updates the password using raw SQL and returns True on success."""
+    try:
+        conn = get_connection()
+        c = conn.cursor()
+        
+        # Note: Changed 'username' to 'email' to match your login logic!
+        # Make sure your table is actually called 'userstable'
+        c.execute('UPDATE userstable SET password = %s WHERE username = %s', (new_password, email))
+        
+        conn.commit()
+        conn.close()
+        
+        return True # Tells Streamlit it worked!
+        
+    except Exception as e:
+        print(f"Database Error updating password: {e}")
+        return False # Tells Streamlit it failed!
