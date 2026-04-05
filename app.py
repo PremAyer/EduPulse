@@ -384,6 +384,12 @@ def display_dashboard():
                         elif val == 'Excellent': return 'background-color: #00cc66; color: white' # Green
                         elif val == 'Good': return 'background-color: #1f77b4; color: white' # Blue
                         return '' # Average stays default
+                    
+                    # Apply colors to the dataframe safely
+                    try:
+                        styled_df = results_df.style.map(color_status, subset=['Predicted_Status'])
+                    except AttributeError:
+                        styled_df = results_df.style.applymap(color_status, subset=['Predicted_Status'])
             
 
 
