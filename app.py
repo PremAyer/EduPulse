@@ -352,10 +352,14 @@ def display_dashboard():
                         hide_index=True
                     )
 
+#Module 4: Student Performance Early Warning System
+    elif st.session_state['active_module'] == "Student Performance Early Warning System":
+        st.markdown("---")
+        st.header("📊 Student Performance Early Warning System")
+        st.write("Upload a batch of student records to predict academic outcomes and identify students requiring early intervention.")    
 
-    st.markdown("---")
-    st.header("📊 Student Performance Early Warning System")
-    st.write("Upload a batch of student records to predict academic outcomes and identify students requiring early intervention.")    
+        # 1. File Uploader
+        uploaded_file = st.file_uploader("Upload Student Data (.csv)", type=["csv"], key="student_uploader")
 
 
 # --- MAIN APP LOGIC (LOGIN / REGISTRATION) ---
