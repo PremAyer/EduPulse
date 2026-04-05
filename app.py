@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from src.career_engine import CareerRecommender
 from src.GenAi_feedback import get_feedback_from_llm
 from src.predictor import PlacementPredictor
+from src.student_engine import StudentPredictor
 import src.Supabase as db
 import re
 import streamlit as st
