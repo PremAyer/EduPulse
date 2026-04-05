@@ -5,7 +5,7 @@ import os
 
 
 print("Loading dataset...")
-df = pd.read_csv('Student Dataset.csv')
+df = pd.read_csv('data/Student Dataset.csv')
 
 # 1. Separate Features and Target
 X = df.drop(columns=['Student id', 'Academic status'], errors='ignore')
