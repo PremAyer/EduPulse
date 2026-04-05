@@ -263,7 +263,9 @@ def display_dashboard():
                         res_df = pd.concat([bulk_df, pd.DataFrame(results)], axis=1)
                         status_text.empty()
 
-                        placed_df = res_df[res_df['Prediction'] == 'Placed']
+                        placed_df = res_df[res_df['Prediction'] == 'Placed'].reset_index(drop=True)
+                        placed_df.index = placed_df.index + 1
+                        placed_df.index.name = 'S.No.'
                         
                         st.success("✅ Batch processing completed successfully.")
                     
@@ -277,7 +279,7 @@ def display_dashboard():
                             # Display and download only the filtered dataframe
                             st.dataframe(placed_df, width="stretch")
 
-                            csv = placed_df.to_csv(index=False).encode('utf-8')
+                            csv = placed_df.to_csv(index=True).encode('utf-8')
                             st.download_button(
                                 "📥 Export Placed Students (CSV)", 
                                 data=csv, 
