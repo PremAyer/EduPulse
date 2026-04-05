@@ -35,3 +35,6 @@ class StudentPredictor:
 
                 results_df.insert(0, 'Predicted_Status', predictions) 
                 return results_df, "Success"
+            
+            except Exception as e:
+                return None, f"Prediction error: {str(e)}"
