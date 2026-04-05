@@ -19,3 +19,5 @@ model = GradientBoostingClassifier(
     max_depth=5,        # Keeps the individual trees relatively shallow to prevent overfitting
     random_state=42
 )
+
+model.fit(X, y)
