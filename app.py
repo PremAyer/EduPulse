@@ -375,10 +375,13 @@ def display_dashboard():
         st.write("Upload a batch of student records to predict academic outcomes and identify students requiring early intervention.")    
 
         # 1. File Uploader
-        uploaded_file = st.file_uploader("Upload Student Data (.csv)", type=["csv"], key="student_uploader")
+        uploaded_file = st.file_uploader("Upload Student Data (.csv)", type=["csv",'xlsx'], key="student_uploader")
 
         if uploaded_file is not None:
-            df = pd.read_csv(uploaded_file)
+            if uploaded_file.name.endswith('.csv'):
+                df = pd.read_csv(uploaded_file)
+            else:
+                df = pd.read_excel(uploaded_file)
             st.success(f"Successfully loaded {len(df)} student records!")
         
             with st.expander("Preview Raw Data"):
