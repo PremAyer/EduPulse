@@ -361,6 +361,10 @@ def display_dashboard():
         # 1. File Uploader
         uploaded_file = st.file_uploader("Upload Student Data (.csv)", type=["csv"], key="student_uploader")
 
+        if uploaded_file is not None:
+            df = pd.read_csv(uploaded_file)
+            st.success(f"Successfully loaded {len(df)} student records!")
+
 
 # --- MAIN APP LOGIC (LOGIN / REGISTRATION) ---
 def main():
