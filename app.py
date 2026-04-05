@@ -390,6 +390,9 @@ def display_dashboard():
                         styled_df = results_df.style.map(color_status, subset=['Predicted_Status'])
                     except AttributeError:
                         styled_df = results_df.style.applymap(color_status, subset=['Predicted_Status'])
+
+                    # Show Table
+                    st.dataframe(styled_df, width="stretch", hide_index=True)
             
 
 
