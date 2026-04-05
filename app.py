@@ -182,13 +182,6 @@ def display_dashboard():
                 st.session_state['active_module'] = "Student" # Update this to match whatever you named this page in your routing!
                 st.rerun()
         
-        st.write("") 
-
-        # --- ROW 2 ---
-        # We create 2 columns again, but only use the first one. 
-        # This keeps your cards exactly the same size!
-        col3, col4 = st.columns(2)
-        
         with col4:
             st.markdown('<div class="module-card"><h3>Under Maintenance</h3>div>', unsafe_allow_html=True)
             if st.button("Coming Soon", width="stretch"):
