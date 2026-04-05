@@ -371,6 +371,10 @@ def display_dashboard():
         # 2. Run Analysis Button
         if st.button("Run Performance Predictions", type="primary", use_container_width=True):
             with st.spinner("Analyzing student metrics..."):
+                # Run the AI Engine
+                predictor = StudentPredictor()
+                results_df, status = predictor.predict_performance(df)
+        
 
 
 # --- MAIN APP LOGIC (LOGIN / REGISTRATION) ---
