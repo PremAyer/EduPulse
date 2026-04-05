@@ -183,7 +183,7 @@ def display_dashboard():
                 st.rerun()
         
         with col4:
-            st.markdown('<div class="module-card"><h3>Under Maintenance</h3>,<p>Data collection and a rigorous working is happening in this module and soon we will bring this module in service.</p></div>', unsafe_allow_html=True)
+            st.markdown('<div class="module-card"><h3>Under Maintenance</h3><p>Data collection and a rigorous working is happening in this module and soon we will bring this module in service.</p></div>', unsafe_allow_html=True)
             if st.button("Coming Soon", width="stretch"):
                 st.session_state['active_module'] = "In progress" # Update this to match whatever you named this page in your routing!
                 st.rerun()
@@ -381,50 +381,50 @@ def display_dashboard():
             df = pd.read_csv(uploaded_file)
             st.success(f"Successfully loaded {len(df)} student records!")
         
-        with st.expander("Preview Raw Data"):
-            st.dataframe(df.head())
-        
-        # 2. Run Analysis Button
-        if st.button("Run Performance Predictions", type="primary", use_container_width=True):
-            with st.spinner("Analyzing student metrics..."):
-                # Run the AI Engine
-                predictor = StudentPredictor()
-                results_df, status = predictor.predict_performance(df)
-
-                if results_df is not None:
-                    st.subheader("🎯 Prediction Results")
-                    
-                    # 3. Color Coding Function
-                    def color_status(val):
-                        if val == 'At Risk': return 'background-color: #ff4b4b; color: white; font-weight: bold' # Red
-                        elif val == 'Excellent': return 'background-color: #00cc66; color: white' # Green
-                        elif val == 'Good': return 'background-color: #1f77b4; color: white' # Blue
-                        return '' # Average stays default
-                    
-                    # Apply colors to the dataframe safely
-                    try:
-                        styled_df = results_df.style.map(color_status, subset=['Predicted_Status'])
-                    except AttributeError:
-                        styled_df = results_df.style.applymap(color_status, subset=['Predicted_Status'])
-
-                    # Show Table
-                    st.dataframe(styled_df, width="stretch", hide_index=True)
-
-                    # 4. Show Distribution Chart
-                    st.subheader("📈 Cohort Distribution")
-                    c1, c2 = st.columns([1, 2])
-                    
-                    status_counts = results_df['Predicted_Status'].value_counts().reset_index()
-                    status_counts.columns = ['Status', 'Count']
-
-                    with c1:
-                        st.dataframe(status_counts, hide_index=True, width="stretch")
-
-                    with c2:
-                        st.bar_chart(status_counts.set_index('Status'))
-                else:
-                    st.error(status)
+            with st.expander("Preview Raw Data"):
+                st.dataframe(df.head())
             
+            # 2. Run Analysis Button
+            if st.button("Run Performance Predictions", type="primary", use_container_width=True):
+                with st.spinner("Analyzing student metrics..."):
+                    # Run the AI Engine
+                    predictor = StudentPredictor()
+                    results_df, status = predictor.predict_performance(df)
+
+                    if results_df is not None:
+                        st.subheader("🎯 Prediction Results")
+                        
+                        # 3. Color Coding Function
+                        def color_status(val):
+                            if val == 'At Risk': return 'background-color: #ff4b4b; color: white; font-weight: bold' # Red
+                            elif val == 'Excellent': return 'background-color: #00cc66; color: white' # Green
+                            elif val == 'Good': return 'background-color: #1f77b4; color: white' # Blue
+                            return '' # Average stays default
+                        
+                        # Apply colors to the dataframe safely
+                        try:
+                            styled_df = results_df.style.map(color_status, subset=['Predicted_Status'])
+                        except AttributeError:
+                            styled_df = results_df.style.applymap(color_status, subset=['Predicted_Status'])
+
+                        # Show Table
+                        st.dataframe(styled_df, width="stretch", hide_index=True)
+
+                        # 4. Show Distribution Chart
+                        st.subheader("📈 Cohort Distribution")
+                        c1, c2 = st.columns([1, 2])
+                        
+                        status_counts = results_df['Predicted_Status'].value_counts().reset_index()
+                        status_counts.columns = ['Status', 'Count']
+
+                        with c1:
+                            st.dataframe(status_counts, hide_index=True, width="stretch")
+
+                        with c2:
+                            st.bar_chart(status_counts.set_index('Status'))
+                    else:
+                        st.error(status)
+                
 
 
 
