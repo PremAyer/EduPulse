@@ -374,7 +374,17 @@ def display_dashboard():
                 # Run the AI Engine
                 predictor = StudentPredictor()
                 results_df, status = predictor.predict_performance(df)
-        
+
+                if results_df is not None:
+                    st.subheader("🎯 Prediction Results")
+                    
+                    # 3. Color Coding Function
+                    def color_status(val):
+                        if val == 'At Risk': return 'background-color: #ff4b4b; color: white; font-weight: bold' # Red
+                        elif val == 'Excellent': return 'background-color: #00cc66; color: white' # Green
+                        elif val == 'Good': return 'background-color: #1f77b4; color: white' # Blue
+                        return '' # Average stays default
+            
 
 
 # --- MAIN APP LOGIC (LOGIN / REGISTRATION) ---
