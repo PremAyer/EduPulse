@@ -364,6 +364,9 @@ def display_dashboard():
         if uploaded_file is not None:
             df = pd.read_csv(uploaded_file)
             st.success(f"Successfully loaded {len(df)} student records!")
+        
+        with st.expander("Preview Raw Data"):
+            st.dataframe(df.head())
 
 
 # --- MAIN APP LOGIC (LOGIN / REGISTRATION) ---
