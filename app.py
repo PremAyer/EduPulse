@@ -353,6 +353,11 @@ def display_dashboard():
                     )
 
 
+    st.markdown("---")
+    st.header("📊 Student Performance Early Warning System")
+    st.write("Upload a batch of student records to predict academic outcomes and identify students requiring early intervention.")    
+
+
 # --- MAIN APP LOGIC (LOGIN / REGISTRATION) ---
 def main():
     if 'logged_in' not in st.session_state:
