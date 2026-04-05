@@ -21,3 +21,9 @@ model = GradientBoostingClassifier(
 )
 
 model.fit(X, y)
+
+# 3. Save the Model with Compression
+os.makedirs('models', exist_ok=True)
+model_path = 'models/student_performance_model.pkl'
+
+joblib.dump(model, model_path)
