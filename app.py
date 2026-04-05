@@ -400,7 +400,16 @@ def display_dashboard():
                     
                     status_counts = results_df['Predicted_Status'].value_counts().reset_index()
                     status_counts.columns = ['Status', 'Count']
+
+                    with c1:
+                        st.dataframe(status_counts, hide_index=True, width="stretch")
+
+                    with c2:
+                        st.bar_chart(status_counts.set_index('Status'))
+                else:
+                    st.error(status)
             
+
 
 
 # --- MAIN APP LOGIC (LOGIN / REGISTRATION) ---
