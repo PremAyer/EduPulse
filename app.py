@@ -35,9 +35,9 @@ init_db()
 def get_live_metrics():
     # A list of places the file might be hiding
     possible_paths = [
-        "Dataset_company_job roles.csv",             # If it's in the same folder
-        "data/Dataset_company_job roles.csv",        # If you put it in a 'data' folder
-        "src/Dataset_company_job roles.csv",         # If you put it in the 'src' folder
+        "Company Final Dataset.csv",             # If it's in the same folder
+        "data/Company Final Dataset.csv",        # If you put it in a 'data' folder
+        "src/Company Final Dataset.csv",         # If you put it in the 'src' folder
     ]
     
     found_path = None
@@ -299,7 +299,7 @@ def display_dashboard():
         try:
             recommender = CareerRecommender()  
         except FileNotFoundError:
-            st.error("⚠️ System Database Offline: 'Dataset_company_job roles.csv' not found.")
+            st.error("⚠️ System Database Offline: 'Company Final Dataset.csv' not found.")
             st.stop()
 
         with st.container(border=True):
@@ -332,23 +332,29 @@ def display_dashboard():
                 else:
                     st.warning(f"Profile leans toward **{predicted_role}**, but significant upskilling is required for competitive advantage.")
 
-                st.markdown(f"### 🏢 Corporate Compatibility Matrix ({predicted_role})")
+                st.markdown("### 🏢 Multi-Domain Compatibility Matrix")
                 
+                # Dynamic Messaging based on Model Confidence
+                if confidence > 70:
+                    st.info(f"🎯 **High Specialization:** Your skills align strongly with {predicted_role}. Here are the top companies hiring for matching skillsets.")
+                else:
+                    st.info("🔄 **Multi-Disciplinary Profile:** You have a unique, cross-functional mix of skills! Instead of locking you into one path, here are the top roles across the industry where your specific skill blend is highly valued.")
+                
+                # Show the Dataframe (It will never be empty now unless your CSV is empty!)
                 if company_analysis_df.empty:
-                    st.info("Insufficient market data for this specific role configuration.")
+                    st.error("System Error: No data found in the underlying dataset.")
                 else:
                     st.dataframe(
                         company_analysis_df,
                         column_config={
-                            "Formatted Score": st.column_config.ProgressColumn(
+                            "Match Quotient": st.column_config.ProgressColumn(
                                 "Match Quotient",
                                 help="Algorithmic compatibility score",
                                 format="%f%%",
                                 min_value=0, max_value=100,
-                            ),
-                            "Skills to Learn": st.column_config.TextColumn("Deficit Analysis (Required Upskilling)")
+                            )
                         },
-                        use_container_width=True,
+                        width="stretch",
                         hide_index=True
                     )
 
