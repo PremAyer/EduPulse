@@ -20,3 +20,9 @@ class StudentPredictor:
     def predict_performance(self, df):
             if self.model is None:
                 return None, "Model not found. Please run train_student_model.py first."
+            
+            results_df = df.copy()
+        
+            missing_cols = [col for col in self.features if col not in df.columns]
+            if missing_cols:
+                return None, f"Data Error! The uploaded CSV is missing: {', '.join(missing_cols)}"
