@@ -322,16 +322,13 @@ def display_dashboard():
                 st.markdown("---")
                 st.subheader("🎯 System Prediction")
                 
-                # Use clean metric cards for the result
-                c1, c2, c3 = st.columns([1,1,2])
-                c1.metric("Optimal Role", predicted_role)
-                c2.metric("Model Confidence", f"{confidence}%")
-                
-                if confidence > 70:
-                    st.success(f"High profile alignment detected for **{predicted_role}** architecture.")
+                if not company_analysis_df.empty:
+                    best_role = company_analysis_df.iloc[0]['Suggested Role']
+                    best_score = company_analysis_df.iloc[0]['Match Quotient']
                 else:
-                    st.warning(f"Profile leans toward **{predicted_role}**, but significant upskilling is required for competitive advantage.")
-
+                    best_role = predicted_role
+                    best_score = confidence
+                
                 st.markdown("### 🏢 Multi-Domain Compatibility Matrix")
                 
                 # Dynamic Messaging based on Model Confidence
