@@ -262,14 +262,31 @@ def display_dashboard():
 
                         res_df = pd.concat([bulk_df, pd.DataFrame(results)], axis=1)
                         status_text.empty()
-                        st.success("✅ Batch processing completed successfully.")
+
+                        placed_df = res_df[res_df['Prediction'] == 'Placed']
                         
-                        st.dataframe(res_df, use_container_width=True)
+                        st.success("✅ Batch processing completed successfully.")
+                    
+                        
+                        # Handle the edge case where no one is placed
+                        if placed_df.empty:
+                            st.warning("No students met the criteria for placement in this batch.")
+                        else:
+                            st.write(f"🎉 Found **{len(placed_df)}** Placed students:")
+                            
+                            # Display and download only the filtered dataframe
+                            st.dataframe(placed_df, width="stretch")
 
-                        csv = res_df.to_csv(index=False).encode('utf-8')
-                        st.download_button("📥 Export Results (CSV)", data=csv, file_name="EduPulse_Batch_Report.csv", mime="text/csv")
+                            csv = placed_df.to_csv(index=False).encode('utf-8')
+                            st.download_button(
+                                "📥 Export Placed Students (CSV)", 
+                                data=csv, 
+                                file_name="EduPulse_Placed_Students.csv", 
+                                mime="text/csv"
+                            )
 
 
+                        
     # --- VIEW 3: SUCCESS MODULE ---
     elif st.session_state['active_module'] == "Success":
         st.title("🚀 Industry Role & Skill Gap Recommender")
