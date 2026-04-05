@@ -171,6 +171,29 @@ def display_dashboard():
             if st.button("Launch Skill Upgrader", use_container_width=True):
                 st.session_state['active_module'] = "Success"
                 st.rerun()
+        
+        st.write("") 
+
+        col3, col4 = st.columns(2)
+        
+        with col3:
+            st.markdown('<div class="module-card"><h3>🚨 Early Warning System</h3><p>Predict academic outcomes and identify students requiring early intervention using historical performance data.</p></div>', unsafe_allow_html=True)
+            if st.button("Launch Warning System", use_container_width=True):
+                st.session_state['active_module'] = "Student" # Update this to match whatever you named this page in your routing!
+                st.rerun()
+        
+        st.write("") 
+
+        # --- ROW 2 ---
+        # We create 2 columns again, but only use the first one. 
+        # This keeps your cards exactly the same size!
+        col3, col4 = st.columns(2)
+        
+        with col4:
+            st.markdown('<div class="module-card"><h3>Under Maintenance</h3>div>', unsafe_allow_html=True)
+            if st.button("Coming Soon", width="stretch"):
+                st.session_state['active_module'] = "In progress" # Update this to match whatever you named this page in your routing!
+                st.rerun()
 
     # --- VIEW 2: CDC MODULE ---
     elif st.session_state['active_module'] == "CDC":
@@ -353,7 +376,7 @@ def display_dashboard():
                     )
 
 #Module 4: Student Performance Early Warning System
-    elif st.session_state['active_module'] == "Student Performance Early Warning System":
+    elif st.session_state['active_module'] == "Student":
         st.markdown("---")
         st.header("📊 Student Performance Early Warning System")
         st.write("Upload a batch of student records to predict academic outcomes and identify students requiring early intervention.")    
