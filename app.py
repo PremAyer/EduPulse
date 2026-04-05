@@ -329,6 +329,16 @@ def display_dashboard():
                     best_role = predicted_role
                     best_score = confidence
                 
+                # Use clean metric cards for the result
+                c1, c2, c3 = st.columns([1,1,2])
+                c1.metric("Top Recommended Role", best_role)
+                c2.metric("Skill Alignment Score", f"{int(best_score)}%")
+                
+                if best_score > 70:
+                    st.success(f"Excellent alignment detected for **{best_role}**. See the matrix below for specific corporate targets.")
+                else:
+                    st.warning(f"Profile leans toward **{best_role}**, but significant upskilling is required for a competitive advantage.")
+                
                 st.markdown("### 🏢 Multi-Domain Compatibility Matrix")
                 
                 # Dynamic Messaging based on Model Confidence
