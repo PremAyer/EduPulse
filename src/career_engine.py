@@ -86,7 +86,7 @@ class CareerRecommender:
                 
             # 3. Calculate how many skills match
             overlap = user_skills_set.intersection(req_skills_set)
-            match_percentage = (len(overlap) / len(req_skills_set)) * 100
+            match_percentage = int(round((len(overlap) / len(req_skills_set)) * 100))
             
             # 4. Figure out exactly what they are missing
             missing_skills = req_skills_set - user_skills_set
