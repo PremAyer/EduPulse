@@ -393,6 +393,13 @@ def display_dashboard():
 
                     # Show Table
                     st.dataframe(styled_df, width="stretch", hide_index=True)
+
+                    # 4. Show Distribution Chart
+                    st.subheader("📈 Cohort Distribution")
+                    c1, c2 = st.columns([1, 2])
+                    
+                    status_counts = results_df['Predicted_Status'].value_counts().reset_index()
+                    status_counts.columns = ['Status', 'Count']
             
 
 
