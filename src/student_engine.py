@@ -13,3 +13,6 @@ class StudentPredictor:
                 'midterm_exam_avg', 
                 'Lowest midterm_exam_score'
             ]
+            
+        except FileNotFoundError:
+            self.model = None
