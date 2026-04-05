@@ -318,46 +318,32 @@ def display_dashboard():
                 with st.spinner("Processing via NLP Classification Model..."):
                     predicted_role, confidence = recommender.predict_role(user_skills_input)
                     company_analysis_df = recommender.analyze_company_fit(predicted_role, user_skills_input)
-
+                
                 st.markdown("---")
                 st.subheader("🎯 System Prediction")
                 
-                if not company_analysis_df.empty:
-                    best_role = company_analysis_df.iloc[0]['Suggested Role']
-                    best_score = company_analysis_df.iloc[0]['Match Quotient']
-                else:
-                    best_role = predicted_role
-                    best_score = confidence
-                
-                # Use clean metric cards for the result
+                # Use clean metric cards for the ML result
                 c1, c2, c3 = st.columns([1,1,2])
-                c1.metric("Top Recommended Role", best_role)
-                c2.metric("Skill Alignment Score", f"{int(best_score)}%")
+                c1.metric("Optimal Role", predicted_role)
+                c2.metric("Model Confidence", f"{confidence}%")
                 
-                if best_score > 70:
-                    st.success(f"Excellent alignment detected for **{best_role}**. See the matrix below for specific corporate targets.")
-                else:
-                    st.warning(f"Profile leans toward **{best_role}**, but significant upskilling is required for a competitive advantage.")
-                
-                st.markdown("### 🏢 Multi-Domain Compatibility Matrix")
-                
-                # Dynamic Messaging based on Model Confidence
                 if confidence > 70:
-                    st.info(f"🎯 **High Specialization:** Your skills align strongly with {predicted_role}. Here are the top companies hiring for matching skillsets.")
+                    st.success(f"High profile alignment detected for **{predicted_role}**. See targeted companies below.")
                 else:
-                    st.info("🔄 **Multi-Disciplinary Profile:** You have a unique, cross-functional mix of skills! Instead of locking you into one path, here are the top roles across the industry where your specific skill blend is highly valued.")
+                    st.warning(f"Profile leans toward **{predicted_role}**, but significant upskilling is required for competitive advantage.")
+
+                st.markdown(f"### 🏢 Corporate Compatibility Matrix")
                 
-                # Show the Dataframe (It will never be empty now unless your CSV is empty!)
                 if company_analysis_df.empty:
-                    st.error("System Error: No data found in the underlying dataset.")
+                    st.error("Insufficient market data for this specific role configuration.")
                 else:
                     st.dataframe(
                         company_analysis_df,
                         column_config={
                             "Match Quotient": st.column_config.ProgressColumn(
-                                "Match Quotient",
-                                help="Algorithmic compatibility score",
-                                format="%f%%",
+                                "Skill Overlap Score",
+                                help="Percentage of required skills you currently possess",
+                                format="%d%%",
                                 min_value=0, max_value=100,
                             )
                         },

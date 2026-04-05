@@ -64,54 +64,51 @@ class CareerRecommender:
     
     
     def analyze_company_fit(self, predicted_role, user_skills_input, top_n=6):
-        """Scans ALL jobs in the database and returns the closest matches based on skills."""
+        """Scans jobs, prioritizing the ML predicted role first, then sorting by skill match."""
         
-        # 1. Clean the user's input into a set of lowercase skills
         user_skills_list = [s.strip().lower() for s in str(user_skills_input).split(',')]
         user_skills_set = set(user_skills_list)
         
         results = []
 
-        # 2. Iterate through EVERY row in your dataset
         for index, row in self.df.iterrows():
             company = row['Company']
             role = row['Job Role']
             
-            # Clean the required skills from the database
             req_skills_str = str(row['Skills Needed']).lower()
             req_skills_set = set([s.strip() for s in req_skills_str.split(',') if s.strip()])
             
             if not req_skills_set:
                 continue
                 
-            # 3. Calculate how many skills match
             overlap = user_skills_set.intersection(req_skills_set)
             match_percentage = int(round((len(overlap) / len(req_skills_set)) * 100))
             
-            # 4. Figure out exactly what they are missing
             missing_skills = req_skills_set - user_skills_set
             missing_skills_str = ", ".join([s.title() for s in missing_skills])
             
             if not missing_skills_str:
                 missing_skills_str = "None - Fully Aligned!"
                 
-            # Add to our list
+            # --- THE FIX: Check if this row matches the ML Prediction ---
+            # We use a lowercase check to ensure 'Data Scientist' matches 'data scientist'
+            is_primary = 1 if predicted_role.strip().lower() in role.strip().lower() else 0
+                
             results.append({
                 "Company": company,
-                "Suggested Role": role, # We show the actual role from the DB now
+                "Suggested Role": role,
                 "Match Quotient": match_percentage,
-                "Deficit Analysis (Required Upskilling)": missing_skills_str
+                "Deficit Analysis (Required Upskilling)": missing_skills_str,
+                "is_primary": is_primary # We use this to sort, but hide it later
             })
             
-        # 5. Turn into a Dataframe, sort by best match, and grab the top N results
         final_df = pd.DataFrame(results)
         
         if not final_df.empty:
-            final_df = final_df.sort_values(by="Match Quotient", ascending=False).head(top_n)
+            final_df = final_df.sort_values(by=["is_primary", "Match Quotient"], ascending=[False, False])
+            
+            final_df = final_df.drop(columns=['is_primary'])
+            
+            final_df = final_df.head(top_n)
             
         return final_df
-
-
-
-        
-
