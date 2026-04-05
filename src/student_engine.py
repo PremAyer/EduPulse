@@ -26,3 +26,12 @@ class StudentPredictor:
             missing_cols = [col for col in self.features if col not in df.columns]
             if missing_cols:
                 return None, f"Data Error! The uploaded CSV is missing: {', '.join(missing_cols)}"
+            
+            X = df[self.features]
+        
+            try:
+            # Generate Predictions
+                predictions = self.model.predict(X)
+
+                results_df.insert(0, 'Predicted_Status', predictions) 
+                return results_df, "Success"
