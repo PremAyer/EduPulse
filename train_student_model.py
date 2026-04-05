@@ -27,3 +27,5 @@ os.makedirs('models', exist_ok=True)
 model_path = 'models/student_performance_model.pkl'
 
 joblib.dump(model, model_path)
+
+print(f"✅ Success! Gradient Boosting Model trained and saved to {model_path}")
