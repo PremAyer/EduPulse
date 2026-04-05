@@ -6,7 +6,7 @@ import joblib
 import os
 
 class CareerRecommender:
-    def __init__(self, data_path='data/Dataset_company_job roles.csv', model_path='models/career_model.pkl'):
+    def __init__(self, data_path='data/Company Final Dataset.csv', model_path='models/career_model.pkl'):
         self.data_path = data_path
         self.model_path = model_path
         self.model = None
@@ -63,54 +63,53 @@ class CareerRecommender:
             return predicted_role, round(confidence, 2)
     
     
-    def analyze_company_fit(self, predicted_role, user_skills_str):
-        """Finds companies for the role and calculates exact missing skills."""
-        # Filter dataset for the predicted role
-        role_df = self.df[self.df['Job Role'] == predicted_role]
+    def analyze_company_fit(self, predicted_role, user_skills_input, top_n=6):
+        """Scans ALL jobs in the database and returns the closest matches based on skills."""
         
-        # Removes all spaces and capitals from the user's input
-        user_skills_set = set([s.strip().lower().replace(" ", "") for s in user_skills_str.split(',')])      
+        # 1. Clean the user's input into a set of lowercase skills
+        user_skills_list = [s.strip().lower() for s in str(user_skills_input).split(',')]
+        user_skills_set = set(user_skills_list)
         
-        company_results = []
+        results = []
 
-        
-        for _, row in role_df.iterrows():
+        # 2. Iterate through EVERY row in your dataset
+        for index, row in self.df.iterrows():
             company = row['Company']
-            req_skills_str = str(row['Skills Needed'])
+            role = row['Job Role']
             
-            # 1. Keep original capitalization for the UI
-            raw_req_skills = [s.strip().lower() for s in req_skills_str.split(',')]
+            # Clean the required skills from the database
+            req_skills_str = str(row['Skills Needed']).lower()
+            req_skills_set = set([s.strip() for s in req_skills_str.split(',') if s.strip()])
             
-            matched_count = 0
-            missing_skills = []
+            if not req_skills_set:
+                continue
+                
+            # 3. Calculate how many skills match
+            overlap = user_skills_set.intersection(req_skills_set)
+            match_percentage = (len(overlap) / len(req_skills_set)) * 100
             
-            # 2. Check using lowercase, but save the original word
-            for req_skill in raw_req_skills:
-                # Removes spaces and capitals from the Excel data just for the check
-                if req_skill.lower().replace(" ", "") in user_skills_set:
-                    matched_count += 1
-                else:
-                    missing_skills.append(req_skill)
+            # 4. Figure out exactly what they are missing
+            missing_skills = req_skills_set - user_skills_set
+            missing_skills_str = ", ".join([s.title() for s in missing_skills])
             
-            # 3. Calculate match percentage
-            score = (matched_count / len(raw_req_skills)) * 100 if raw_req_skills else 0
-            
-            company_results.append({
-                'Company': company,
-                'Match Score': score,
-                'Formatted Score': f"{score:.0f}%",
-                'Required Skills': req_skills_str,
-                # 4. Remove .title() so it doesn't mess up things like "MySQL" or "AI"
-                'Skills to Learn': ", ".join(missing_skills) if missing_skills else "None! You are ready."
+            if not missing_skills_str:
+                missing_skills_str = "None - Fully Aligned!"
+                
+            # Add to our list
+            results.append({
+                "Company": company,
+                "Suggested Role": role, # We show the actual role from the DB now
+                "Match Quotient": match_percentage,
+                "Deficit Analysis (Required Upskilling)": missing_skills_str
             })
             
-        # Sort by best match score descending
-        company_results.sort(key=lambda x: x['Match Score'], reverse=True)
+        # 5. Turn into a Dataframe, sort by best match, and grab the top N results
+        final_df = pd.DataFrame(results)
         
-        # Return as a DataFrame for Streamlit
-        return pd.DataFrame(company_results).drop(columns=['Match Score'])
-
-  
+        if not final_df.empty:
+            final_df = final_df.sort_values(by="Match Quotient", ascending=False).head(top_n)
+            
+        return final_df
 
 
 
