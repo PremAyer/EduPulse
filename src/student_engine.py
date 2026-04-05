@@ -13,6 +13,10 @@ class StudentPredictor:
                 'midterm_exam_avg', 
                 'Lowest midterm_exam_score'
             ]
-            
+
         except FileNotFoundError:
             self.model = None
+        
+    def predict_performance(self, df):
+            if self.model is None:
+                return None, "Model not found. Please run train_student_model.py first."
