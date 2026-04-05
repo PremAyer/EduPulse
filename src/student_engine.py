@@ -37,14 +37,22 @@ class StudentPredictor:
             # 1. Insert the prediction as the very FIRST column
             results_df.insert(0, 'Predicted_Status', predictions) 
             
-            # --- NEW REORDERING LOGIC ---
-            # 2. Check if 'Student id' exists, and pull it to the front
-            if 'Student id' in results_df.columns:
+            id_col_name = None
+            for col in results_df.columns:
+                # Looks for any variation of "Student id", ignoring spaces and capitalization
+                if str(col).strip().lower() in ['student id', 'studentid', 'id']:
+                    id_col_name = col
+                    break
+                    
+            if id_col_name:
+                # Convert the ID to a string so Streamlit doesn't add commas (e.g., 2,001 -> 2001)
+                results_df[id_col_name] = results_df[id_col_name].astype(str)
+                
+                # Pull it to the front (Index 1)
                 cols = results_df.columns.tolist()
-                cols.remove('Student id')        # Remove it from the back
-                cols.insert(1, 'Student id')     # Insert it at index 1 (right after the prediction)
-                results_df = results_df[cols]    # Apply the new order
-            # -----------------------------
+                cols.remove(id_col_name)        
+                cols.insert(1, id_col_name)     
+                results_df = results_df[cols]    
 
             return results_df, "Success"
             
