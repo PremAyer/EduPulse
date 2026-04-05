@@ -367,6 +367,10 @@ def display_dashboard():
         
         with st.expander("Preview Raw Data"):
             st.dataframe(df.head())
+        
+        # 2. Run Analysis Button
+        if st.button("Run Performance Predictions", type="primary", use_container_width=True):
+            with st.spinner("Analyzing student metrics..."):
 
 
 # --- MAIN APP LOGIC (LOGIN / REGISTRATION) ---
