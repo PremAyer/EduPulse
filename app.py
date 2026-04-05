@@ -183,7 +183,7 @@ def display_dashboard():
                 st.rerun()
         
         with col4:
-            st.markdown('<div class="module-card"><h3>Under Maintenance</h3>div>', unsafe_allow_html=True)
+            st.markdown('<div class="module-card"><h3>Under Maintenance</h3>,<p>Data collection and a rigorous working is happening in this module and soon we will bring this module in service.</p></div>', unsafe_allow_html=True)
             if st.button("Coming Soon", width="stretch"):
                 st.session_state['active_module'] = "In progress" # Update this to match whatever you named this page in your routing!
                 st.rerun()
