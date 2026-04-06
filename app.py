@@ -452,7 +452,7 @@ def main():
 
                 with tab_login:
                     st.write("") # Spacer
-                    email = st.text_input("Corporate / Institutional Email", key="l_email", placeholder="user@domain.com")
+                    email = st.text_input("Institutional Email", key="l_email", placeholder="user@domain.com")
                     password = st.text_input("Passphrase", type='password', key="l_pass")
                     
                     if st.button("Authenticate Session", use_container_width=True, type="primary"):
@@ -474,6 +474,17 @@ def main():
                                 st.warning("All fields are required for provisioning.")
                             elif not re.match(r"^[a-zA-Z0-9._%+-]+@gmail\.com$", new_user):
                                 st.error("Policy Violation: Must use a valid Gmail address.")
+                            
+                            elif not re.match(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$", new_password):
+                                st.error("""
+                                    **Password Policy Violation:**
+                                    Your password must contain:
+                                    - At least 8 characters
+                                    - One uppercase letter (A-Z)
+                                    - One lowercase letter (a-z)
+                                    - One numeric digit (0-9)
+                                    - One special character (@$!%*?&)
+                                """)
                             else:
                                 try:
                                     db.add_userdata(new_user, db.make_hashes(new_password))
