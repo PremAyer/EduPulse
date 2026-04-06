@@ -30,8 +30,6 @@ def init_db():
 init_db()
 
 # --- HELPER: LIVE SYSTEM METRICS ---
-
-# --- HELPER: LIVE SYSTEM METRICS ---
 @st.cache_data(ttl=3600)
 def get_live_metrics():
     # A list of places the file might be hiding
