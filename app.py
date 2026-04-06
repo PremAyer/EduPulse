@@ -526,8 +526,19 @@ def main():
                         with col1:
                             if st.button("Confirm Reset", use_container_width=True, type="primary"):
                                 if entered_otp == st.session_state['valid_otp']:
-                                    if len(new_password) < 4:
-                                        st.warning("Password too short.")
+                                    password_pattern = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+
+                                    if not re.match(password_pattern, new_password):
+                                        st.error("""
+                                            Password does not meet requirements:
+                                            - Minimum 8 characters
+                                            - At least one uppercase letter
+                                            - At least one lowercase letter
+                                            - At least one number
+                                            - At least one special character (@$!%*?&)
+                                        """)
+
+                            
                                     else:
                                         # Hash new password and update database
                                         new_hashed = db.make_hashes(new_password)
