@@ -200,8 +200,8 @@ def display_dashboard():
         
         with col4:
             st.markdown('<div class="module-card"><h3>📚 Course Recommender</h3><p>RAG-powered AI assistant to help you discover the perfect upskilling courses based on your preferences.</p></div>', unsafe_allow_html=True)
-            if st.button("Coming Soon", width="stretch"):
-                st.session_state['active_module'] = "In progress" # Update this to match whatever you named this page in your routing!
+            if st.button("Launch Course Recommender", width="stretch"):
+                st.session_state['active_module'] = "CourseRecommender" # Update this to match whatever you named this page in your routing!
                 st.rerun()
 
     # --- VIEW 2: CDC MODULE ---
