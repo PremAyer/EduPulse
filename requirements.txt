@@ -10,3 +10,7 @@ langchain-google-genai
 langchain
 langchain-community
 openpyxl
+langchain-community
+langchain-huggingface
+chromadb
+sentence-transformers
