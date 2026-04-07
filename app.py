@@ -10,6 +10,9 @@ import re
 import streamlit as st
 import random
 from src.email_service import send_otp_email
+from Course_Recommender.data_loader import load_course_data
+from Course_Recommender.vector_store import get_retriever
+from Course_Recommender.rag_chain import get_rag_chain
 
 # Load environment variables
 load_dotenv("config/.env")
@@ -28,6 +31,21 @@ def init_db():
     return True
 
 init_db()
+
+
+# --- HELPER: RAG INITIALIZATION ---
+@st.cache_resource(show_spinner=False)
+def initialize_rag_system():
+    # Adjust this path if your CSV is located somewhere else
+    csv_path = "Course_Recommender/B.Tech Courses.csv"
+    docs = load_course_data(csv_path)
+    
+    if docs is None and not os.path.exists("./course_chroma_db"):
+        return None, f"Error: '{csv_path}' not found. Please add the dataset."
+    
+    retriever = get_retriever(docs)
+    chain = get_rag_chain(retriever)
+    return chain, "Success"
 
 # --- HELPER: LIVE SYSTEM METRICS ---
 @st.cache_data(ttl=3600)
@@ -181,7 +199,7 @@ def display_dashboard():
                 st.rerun()
         
         with col4:
-            st.markdown('<div class="module-card"><h3>Course Recommender</h3><p>Data collection and a rigorous working is happening in this module and soon we will bring this module in service.</p></div>', unsafe_allow_html=True)
+            st.markdown('<div class="module-card"><h3>📚 Course Recommender</h3><p>RAG-powered AI assistant to help you discover the perfect upskilling courses based on your preferences.</p></div>', unsafe_allow_html=True)
             if st.button("Coming Soon", width="stretch"):
                 st.session_state['active_module'] = "In progress" # Update this to match whatever you named this page in your routing!
                 st.rerun()
@@ -425,9 +443,63 @@ def display_dashboard():
                             st.bar_chart(status_counts.set_index('Status'))
                     else:
                         st.error(status)
+    
+    #Final Module: Course Recommender
+    elif st.session_state['active_module'] == "CourseRecommender":
+        st.title("📚 AI Course Recommender")
+        st.markdown("Chat with our AI to get personalized course recommendations based on your desired skills, budget, and availability.")
+
+        # Check for API Key in environment or ask via sidebar
+        if "GOOGLE_API_KEY" not in os.environ:
+            st.sidebar.header("Configuration")
+            st.sidebar.warning("API Key required for generative features.")
+            api_key = st.sidebar.text_input("Enter Google API Key", type="password")
+            if api_key:
+                os.environ["GOOGLE_API_KEY"] = api_key
+
+        if "GOOGLE_API_KEY" not in os.environ:
+            st.warning("👈 Please enter your Google API Key in the sidebar or ensure it is in your .env file to start.")
+        else:
+            with st.spinner("Initializing AI Engine... (This takes a moment on first run)"):
+                rag_chain, status = initialize_rag_system()
                 
+            if rag_chain is None:
+                st.error(status)
+            else:
+                # Initialize chat history specifically for the course recommender
+                if "course_messages" not in st.session_state:
+                    st.session_state.course_messages = []
 
+                chat_container = st.container(border=True, height=400)
 
+                with chat_container:
+                    # Display chat messages from history on app rerun
+                    for message in st.session_state.course_messages:
+                        with st.chat_message(message["role"]):
+                            st.markdown(message["content"])
+
+                # React to user input
+                if prompt := st.chat_input("E.g., I need a beginner web dev course under $50"):
+                    
+                    with chat_container:
+                        st.chat_message("user").markdown(prompt)
+                    st.session_state.course_messages.append({"role": "user", "content": prompt})
+
+                    with st.spinner("Searching for the best courses..."):
+                        try:
+                            # Get response from RAG
+                            response = rag_chain.invoke({"input": prompt})
+                            answer = response["answer"]
+                            
+                            with chat_container:
+                                with st.chat_message("assistant"):
+                                    st.markdown(answer)
+                            
+                            st.session_state.course_messages.append({"role": "assistant", "content": answer})
+                        except Exception as e:
+                            st.error(f"An error occurred: {e}")
+
+                
 
 # --- MAIN APP LOGIC (LOGIN / REGISTRATION) ---
 def main():
