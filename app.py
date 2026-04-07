@@ -37,7 +37,7 @@ init_db()
 @st.cache_resource(show_spinner=False)
 def initialize_rag_system():
     # Adjust this path if your CSV is located somewhere else
-    csv_path = "Course_Recommender/B.Tech Courses.csv"
+    csv_path = "data/B.Tech Courses.csv"
     docs = load_course_data(csv_path)
     
     if docs is None and not os.path.exists("./course_chroma_db"):
