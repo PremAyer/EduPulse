@@ -14,3 +14,4 @@ langchain-community
 langchain-huggingface
 chromadb
 sentence-transformers
+plotly

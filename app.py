@@ -1,14 +1,15 @@
 import pandas as pd
 import os
+import re
+import streamlit as st
+import random
+import src.Supabase as db
+import plotly.graph_objects as go
 from dotenv import load_dotenv
 from src.career_engine import CareerRecommender
 from src.GenAi_feedback import get_feedback_from_llm
 from src.predictor import PlacementPredictor
 from src.student_engine import StudentPredictor
-import src.Supabase as db
-import re
-import streamlit as st
-import random
 from src.email_service import send_otp_email
 from Course_Recommender.data_loader import load_course_data
 from Course_Recommender.vector_store import get_retriever
@@ -221,6 +222,9 @@ def display_dashboard():
         
         st.write("")
 
+        
+# ... (keep your existing predictor initialization and radio button above this) ...
+
         if analysis_mode == "Manual Entry (Single Student)":
             st.sidebar.header("📝 Profile Configuration")
             inputs = {
@@ -232,93 +236,162 @@ def display_dashboard():
                 'backlogs': st.sidebar.number_input("Active Backlogs", min_value=0, max_value=10, value=0), 
             }
 
-            st.subheader("Engine Output")
-            if st.button("Execute Prediction Request", type="primary"):
-                status, salary = predictor.predict(inputs)
-                
-                if status == "Placed":
-                    st.markdown(f"""
-                        <div style="background-color: rgba(52, 168, 83, 0.1); padding: 25px; border-left: 6px solid #34a853; border-radius: 8px; margin-bottom: 20px;">
-                            <h3 style="color: #188038; margin-top: 0;">✅ Placement Probability: High</h3>
-                            <p style="color: #188038; font-size: 16px; margin-bottom: 0;">Profile qualifies for <strong>Tier-1 Premium Placements</strong>.</p>
-                            <h2 style="color: #188038; margin-top: 10px; margin-bottom: 0;">Estimated Package: {salary} LPA</h2>
-                        </div>""", unsafe_allow_html=True)
-                else:
-                    st.error(f"❌ Prediction Status: {status} - Profile requires optimization.")
+            st.markdown("### 🧠 Engine Output & Analysis")
+            
+            if st.button("Execute Prediction Request", type="primary", use_container_width=True):
+                with st.spinner("Running ML Models and fetching AI insights..."):
+                    status, salary = predictor.predict(inputs)
+                    
+                    # --- DASHBOARD HEADER (METRIC CARDS) ---
+                    st.markdown("#### Executive Summary")
+                    c1, c2, c3 = st.columns(3)
+                    
+                    with c1:
+                        if status == "Placed":
+                            st.success("✅ Status: Placed")
+                        else:
+                            st.error("❌ Status: At Risk")
+                    
+                    with c2:
+                        st.info(f"💰 Est. Package: {salary} LPA")
+                        
+                    with c3:
+                        # Simulate a probability score based on inputs for the UI (or use predictor.predict_proba() if your ML model supports it)
+                        base_prob = (inputs['coding_skill_score'] * 0.4) + (inputs['aptitude_score'] * 0.3) + (inputs['cgpa'] * 10 * 0.3)
+                        penalty = inputs['backlogs'] * 10
+                        final_prob = max(min(base_prob - penalty, 99), 15) # Keep between 15% and 99%
+                        st.metric(label="Model Confidence", value=f"{final_prob:.1f}%")
 
-                # AI Feedback
-                if os.getenv("GOOGLE_API_KEY"):
-                    with st.spinner("Connecting to Generative AI Core..."):
+                    st.divider()
+
+                    # --- VISUALIZATION SECTION ---
+                    st.markdown("#### 📊 Candidate Competency Profile")
+                    col_chart1, col_chart2 = st.columns(2)
+
+                    with col_chart1:
+                        # 1. GAUGE CHART FOR PLACEMENT PROBABILITY
+                        fig_gauge = go.Figure(go.Indicator(
+                            mode = "gauge+number",
+                            value = final_prob,
+                            domain = {'x': [0, 1], 'y': [0, 1]},
+                            title = {'text': "Placement Probability"},
+                            gauge = {
+                                'axis': {'range': [None, 100]},
+                                'bar': {'color': "#1f77b4"},
+                                'steps': [
+                                    {'range': [0, 40], 'color': "#ff4b4b"},     # Red
+                                    {'range': [40, 70], 'color': "#ffa421"},    # Yellow
+                                    {'range': [70, 100], 'color': "#00cc66"}    # Green
+                                ],
+                            }
+                        ))
+                        fig_gauge.update_layout(height=300, margin=dict(l=10, r=10, t=40, b=10))
+                        st.plotly_chart(fig_gauge, use_container_width=True)
+
+                    with col_chart2:
+                        # 2. RADAR CHART: Student vs. Ideal Candidate
+                        categories = ['Coding', 'Aptitude', 'CGPA (Scaled)', 'Projects (Scaled)', 'Internships (Scaled)']
+                        
+                        # Scale the smaller numbers up to 100 for the radar chart visualization
+                        student_values = [
+                            inputs['coding_skill_score'], 
+                            inputs['aptitude_score'], 
+                            inputs['cgpa'] * 10, 
+                            inputs['projects_count'] * 10, 
+                            inputs['internships_count'] * 20
+                        ]
+                        ideal_values = [85, 80, 85, 40, 40] # Baseline for a "Great" candidate
+
+                        fig_radar = go.Figure()
+                        fig_radar.add_trace(go.Scatterpolar(r=student_values, theta=categories, fill='toself', name='Your Profile', line_color='#007bff'))
+                        fig_radar.add_trace(go.Scatterpolar(r=ideal_values, theta=categories, fill='toself', name='Ideal Profile', line_color='#34a853', opacity=0.5))
+                        
+                        fig_radar.update_layout(
+                            polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
+                            showlegend=True,
+                            height=300,
+                            margin=dict(l=30, r=30, t=30, b=30)
+                        )
+                        st.plotly_chart(fig_radar, use_container_width=True)
+
+                    # --- AI FEEDBACK SECTION ---
+                    st.divider()
+                    if os.getenv("GOOGLE_API_KEY"):
+                        st.markdown("#### 🤖 Generative AI Insights")
                         try:
                             feedback = get_feedback_from_llm(inputs, status, salary)
-                            if status == "Placed":
-                                st.subheader("🎊 AI Counselor Analysis")
-                                st.success(feedback)
-                            else:
-                                st.subheader("💡 AI Optimization Strategy")
-                                st.warning(feedback)
+                            
+                            # Wrap the AI feedback in a nice styled container
+                            with st.container(border=True):
+                                if status == "Placed":
+                                    st.markdown("##### 🎉 Counselor Analysis")
+                                    st.success(feedback)
+                                else:
+                                    st.markdown("##### 💡 Optimization Strategy")
+                                    st.warning(feedback)
                         except Exception as e:
                             st.error(f"AI System Error: {e}")
 
-        else:
-            st.subheader("📁 Batch Processing Engine")
-            st.write("Upload a dataset to run high-throughput placement predictions.")
-            uploaded_file = st.file_uploader("Upload Student Data (CSV or Excel)", type=['csv', 'xlsx'])
 
-            if uploaded_file:
-                if uploaded_file.name.endswith('.csv'):
-                    bulk_df = pd.read_csv(uploaded_file)
-                else:
-                    bulk_df = pd.read_excel(uploaded_file)
+        elif analysis_mode == "Bulk Upload (Excel/CSV)":
+                    st.subheader("📁 Batch Processing Engine")
+                    st.write("Upload a dataset to run high-throughput placement predictions.")
+                    uploaded_file = st.file_uploader("Upload Student Data (CSV or Excel)", type=['csv', 'xlsx'])
 
-                with st.expander("Preview Ingested Data"):
-                    st.dataframe(bulk_df.head(), use_container_width=True)
-
-                required_cols = ['coding_skill_score', 'aptitude_score', 'internships_count', 'projects_count', 'cgpa', 'backlogs']
-                missing_cols = [c for c in required_cols if c not in bulk_df.columns]
-
-                if missing_cols:
-                    st.error(f"Schema Validation Failed. Missing columns: {missing_cols}")
-                else:
-                    if st.button("Initialize Batch Analysis", type="primary"):
-                        results = []
-                        progress_bar = st.progress(0)
-                        status_text = st.empty()
-
-                        for index, row in bulk_df.iterrows():
-                            student_input = {col: row[col] for col in required_cols}
-                            status, salary = predictor.predict(student_input)
-                            results.append({"Prediction": status, "Estimated_Salary": salary})
-                            
-                            progress_bar.progress((index + 1) / len(bulk_df))
-                            status_text.text(f"Processing record {index + 1} of {len(bulk_df)}...")
-
-                        res_df = pd.concat([bulk_df, pd.DataFrame(results)], axis=1)
-                        status_text.empty()
-
-                        placed_df = res_df[res_df['Prediction'] == 'Placed'].reset_index(drop=True)
-                        placed_df.index = placed_df.index + 1
-                        placed_df.index.name = 'S.No.'
-                        
-                        st.success("✅ Batch processing completed successfully.")
-                    
-                        
-                        # Handle the edge case where no one is placed
-                        if placed_df.empty:
-                            st.warning("No students met the criteria for placement in this batch.")
+                    if uploaded_file:
+                        if uploaded_file.name.endswith('.csv'):
+                            bulk_df = pd.read_csv(uploaded_file)
                         else:
-                            st.write(f"🎉 Found **{len(placed_df)}** Placed students:")
-                            
-                            # Display and download only the filtered dataframe
-                            st.dataframe(placed_df, width="stretch")
+                            bulk_df = pd.read_excel(uploaded_file)
 
-                            csv = placed_df.to_csv(index=True).encode('utf-8')
-                            st.download_button(
-                                "📥 Export Placed Students (CSV)", 
-                                data=csv, 
-                                file_name="EduPulse_Placed_Students.csv", 
-                                mime="text/csv"
-                            )
+                        with st.expander("Preview Ingested Data"):
+                            st.dataframe(bulk_df.head(), use_container_width=True)
+
+                        required_cols = ['coding_skill_score', 'aptitude_score', 'internships_count', 'projects_count', 'cgpa', 'backlogs']
+                        missing_cols = [c for c in required_cols if c not in bulk_df.columns]
+
+                        if missing_cols:
+                            st.error(f"Schema Validation Failed. Missing columns: {missing_cols}")
+                        else:
+                            if st.button("Initialize Batch Analysis", type="primary"):
+                                results = []
+                                progress_bar = st.progress(0)
+                                status_text = st.empty()
+
+                                for index, row in bulk_df.iterrows():
+                                    student_input = {col: row[col] for col in required_cols}
+                                    status, salary = predictor.predict(student_input)
+                                    results.append({"Prediction": status, "Estimated_Salary": salary})
+                                    
+                                    progress_bar.progress((index + 1) / len(bulk_df))
+                                    status_text.text(f"Processing record {index + 1} of {len(bulk_df)}...")
+
+                                res_df = pd.concat([bulk_df, pd.DataFrame(results)], axis=1)
+                                status_text.empty()
+
+                                placed_df = res_df[res_df['Prediction'] == 'Placed'].reset_index(drop=True)
+                                placed_df.index = placed_df.index + 1
+                                placed_df.index.name = 'S.No.'
+                                
+                                st.success("✅ Batch processing completed successfully.")
+                            
+                                
+                                # Handle the edge case where no one is placed
+                                if placed_df.empty:
+                                    st.warning("No students met the criteria for placement in this batch.")
+                                else:
+                                    st.write(f"🎉 Found **{len(placed_df)}** Placed students:")
+                                    
+                                    # Display and download only the filtered dataframe
+                                    st.dataframe(placed_df, width="stretch")
+
+                                    csv = placed_df.to_csv(index=True).encode('utf-8')
+                                    st.download_button(
+                                        "📥 Export Placed Students (CSV)", 
+                                        data=csv, 
+                                        file_name="EduPulse_Placed_Students.csv", 
+                                        mime="text/csv"
+                                    )
 
 
                         
