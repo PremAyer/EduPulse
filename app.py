@@ -15,10 +15,8 @@ from Course_Recommender.data_loader import load_course_data
 from Course_Recommender.vector_store import get_retriever
 from Course_Recommender.rag_chain import get_rag_chain
 
-# Load environment variables
 load_dotenv("config/.env")
 
-# --- PAGE CONFIGURATION ---
 st.set_page_config(
     page_title="EduPulse | Student Analytics",
     page_icon="🎓",
@@ -33,11 +31,8 @@ def init_db():
 
 init_db()
 
-
-# --- HELPER: RAG INITIALIZATION ---
 @st.cache_resource(show_spinner=False)
 def initialize_rag_system():
-    # Adjust this path if your CSV is located somewhere else
     csv_path = "data/B.Tech Courses.csv"
     docs = load_course_data(csv_path)
     
@@ -48,14 +43,13 @@ def initialize_rag_system():
     chain = get_rag_chain(retriever)
     return chain, "Success"
 
-# --- HELPER: LIVE SYSTEM METRICS ---
+
 @st.cache_data(ttl=3600)
 def get_live_metrics():
-    # A list of places the file might be hiding
     possible_paths = [
-        "Company Final Dataset.csv",             # If it's in the same folder
-        "data/Company Final Dataset.csv",        # If you put it in a 'data' folder
-        "src/Company Final Dataset.csv",         # If you put it in the 'src' folder
+        "Company Final Dataset.csv",             
+        "data/Company Final Dataset.csv",        
+        "src/Company Final Dataset.csv",         
     ]
     
     found_path = None
@@ -65,7 +59,6 @@ def get_live_metrics():
             break
             
     if found_path:
-        # We found it! Let's do the math.
         df = pd.read_csv(found_path)
         companies_count = len(df['Company'].unique())
         roles_count = len(df['Job Role'].unique())
@@ -77,11 +70,10 @@ def get_live_metrics():
             
         return companies_count, roles_count, len(all_skills)
     else:
-        # It still couldn't find it. Let's warn the developer.
         st.sidebar.error("⚠️ Telemetry Error: Could not locate 'Dataset_company_job roles.csv'.")
         return 0, 0, 0
 
-# --- ENTERPRISE CSS INJECTION ---
+
 def inject_custom_css():
     st.markdown("""
         <style>
@@ -127,25 +119,22 @@ def inject_custom_css():
         </style>
         """, unsafe_allow_html=True)
 
-# --- FUNCTION FOR THE MAIN DASHBOARD ---
+
 def display_dashboard():
     inject_custom_css()
     
     if 'active_module' not in st.session_state:
         st.session_state['active_module'] = "Home"
 
-    # --- SIDEBAR BRANDING ---
     with st.sidebar:
         st.markdown("### 🎓 EduPulse")
         st.caption("Department of Computer Science • AIML")
         st.divider()
         
-        # Simulated User Profile
         st.markdown("👤 **Current Session**")
         st.caption("🟢 Status: Authenticated")
         st.write("")
         
-        # Navigation
         st.markdown("**Navigation**")
         if st.button("🏠 Workspace Home", use_container_width=True, type="secondary" if st.session_state['active_module'] != "Home" else "primary"):
             st.session_state['active_module'] = "Home"
@@ -155,15 +144,12 @@ def display_dashboard():
         st.button("🚪 Secure Logout", on_click=lambda: st.session_state.update({"logged_in": False}), type="secondary")
 
 
-    # --- VIEW 1: MAIN MENU (HOME) ---
+    # MAIN MENU (HOME)
     if st.session_state['active_module'] == "Home":
         st.title("Central Analytics Workspace")
-        st.markdown("<p style='font-size: 16px; color: #666;'>Welcome to your executive dashboard. Monitor platform health, access predictive modules, and map industry skills below.</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size: 16px; color: #666;'>Welcome to your executive dashboard. Monitor platform health, access predictive modules, and map industry skills below.</p>", unsafe_allow_html=True)       
         
-        # REALISTIC FEATURE: Live System Metrics
         st.markdown("#### 📈 Live Platform Telemetry")
-        
-        # Fetch actual data from your dataset
         companies_count, roles_count, skills_count = get_live_metrics()
         
         m1, m2, m3, m4 = st.columns(4)
@@ -176,7 +162,6 @@ def display_dashboard():
         st.markdown("#### 🚀 Active Modules")
         
         col1, col2 = st.columns(2)
-        
         with col1:
             st.markdown('<div class="module-card"><h3>📊 CDC Portal</h3><p>Placement likelihood & salary estimation engine powered by historical placement data.</p></div>', unsafe_allow_html=True)
             if st.button("Launch CDC Module", use_container_width=True):
@@ -192,20 +177,19 @@ def display_dashboard():
         st.write("") 
 
         col3, col4 = st.columns(2)
-        
         with col3:
             st.markdown('<div class="module-card"><h3>🚨 Early Warning System</h3><p>Predict academic outcomes and identify students requiring early intervention using historical performance data.</p></div>', unsafe_allow_html=True)
             if st.button("Launch Warning System", use_container_width=True):
-                st.session_state['active_module'] = "Student" # Update this to match whatever you named this page in your routing!
+                st.session_state['active_module'] = "Student" 
                 st.rerun()
         
         with col4:
             st.markdown('<div class="module-card"><h3>📚 Course Recommender</h3><p>RAG-powered AI assistant to help you discover the perfect upskilling courses based on your preferences.</p></div>', unsafe_allow_html=True)
             if st.button("Launch Course Recommender", width="stretch"):
-                st.session_state['active_module'] = "CourseRecommender" # Update this to match whatever you named this page in your routing!
+                st.session_state['active_module'] = "CourseRecommender" 
                 st.rerun()
 
-    # --- VIEW 2: CDC MODULE ---
+    # CDC MODULE 
     elif st.session_state['active_module'] == "CDC":
         st.title("📊 Placement Forecasting Engine")
         st.markdown("""
@@ -215,15 +199,10 @@ def display_dashboard():
         st.info("💡 **Tip:** In Manual Mode, try tweaking your Coding and Aptitude scores to see how skill improvements directly impact your estimated salary package!")
         
         predictor = PlacementPredictor()
-
-        # Use a container for the input controls
         with st.container(border=True):
             analysis_mode = st.radio("Select Input Method:", ["Manual Entry (Single Student)", "Bulk Upload (Excel/CSV)"], horizontal=True)
         
         st.write("")
-
-        
-# ... (keep your existing predictor initialization and radio button above this) ...
 
         if analysis_mode == "Manual Entry (Single Student)":
             st.sidebar.header("📝 Profile Configuration")
@@ -241,8 +220,7 @@ def display_dashboard():
             if st.button("Execute Prediction Request", type="primary", use_container_width=True):
                 with st.spinner("Running ML Models and fetching AI insights..."):
                     status, salary = predictor.predict(inputs)
-                    
-                    # --- DASHBOARD HEADER (METRIC CARDS) ---
+
                     st.markdown("#### Executive Summary")
                     c1, c2, c3 = st.columns(3)
                     
@@ -259,7 +237,7 @@ def display_dashboard():
                         # Simulate a probability score based on inputs for the UI (or use predictor.predict_proba() if your ML model supports it)
                         base_prob = (inputs['coding_skill_score'] * 0.4) + (inputs['aptitude_score'] * 0.3) + (inputs['cgpa'] * 10 * 0.3)
                         penalty = inputs['backlogs'] * 10
-                        final_prob = max(min(base_prob - penalty, 99), 15) # Keep between 15% and 99%
+                        final_prob = max(min(base_prob - penalty, 99), 15)
                         st.metric(label="Model Confidence", value=f"{final_prob:.1f}%")
 
                     st.divider()
@@ -279,9 +257,9 @@ def display_dashboard():
                                 'axis': {'range': [None, 100]},
                                 'bar': {'color': "#1f77b4"},
                                 'steps': [
-                                    {'range': [0, 40], 'color': "#ff4b4b"},     # Red
-                                    {'range': [40, 70], 'color': "#ffa421"},    # Yellow
-                                    {'range': [70, 100], 'color': "#00cc66"}    # Green
+                                    {'range': [0, 40], 'color': "#ff4b4b"},     
+                                    {'range': [40, 70], 'color': "#ffa421"},    
+                                    {'range': [70, 100], 'color': "#00cc66"}    
                                 ],
                             }
                         ))
@@ -289,10 +267,7 @@ def display_dashboard():
                         st.plotly_chart(fig_gauge, use_container_width=True)
 
                     with col_chart2:
-                        # 2. RADAR CHART: Student vs. Ideal Candidate
                         categories = ['Coding', 'Aptitude', 'CGPA (Scaled)', 'Projects (Scaled)', 'Internships (Scaled)']
-                        
-                        # Scale the smaller numbers up to 100 for the radar chart visualization
                         student_values = [
                             inputs['coding_skill_score'], 
                             inputs['aptitude_score'], 
@@ -300,12 +275,11 @@ def display_dashboard():
                             inputs['projects_count'] * 10, 
                             inputs['internships_count'] * 20
                         ]
-                        ideal_values = [85, 80, 85, 40, 40] # Baseline for a "Great" candidate
+                        ideal_values = [85, 80, 85, 40, 40]
 
                         fig_radar = go.Figure()
                         fig_radar.add_trace(go.Scatterpolar(r=student_values, theta=categories, fill='toself', name='Your Profile', line_color='#007bff'))
                         fig_radar.add_trace(go.Scatterpolar(r=ideal_values, theta=categories, fill='toself', name='Ideal Profile', line_color='#34a853', opacity=0.5))
-                        
                         fig_radar.update_layout(
                             polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
                             showlegend=True,
@@ -320,8 +294,6 @@ def display_dashboard():
                         st.markdown("#### 🤖 Generative AI Insights")
                         try:
                             feedback = get_feedback_from_llm(inputs, status, salary)
-                            
-                            # Wrap the AI feedback in a nice styled container
                             with st.container(border=True):
                                 if status == "Placed":
                                     st.markdown("##### 🎉 Counselor Analysis")
@@ -331,7 +303,6 @@ def display_dashboard():
                                     st.warning(feedback)
                         except Exception as e:
                             st.error(f"AI System Error: {e}")
-
 
         elif analysis_mode == "Bulk Upload (Excel/CSV)":
                     st.subheader("📁 Batch Processing Engine")
@@ -375,16 +346,12 @@ def display_dashboard():
                                 
                                 st.success("✅ Batch processing completed successfully.")
                             
-                                
-                                # Handle the edge case where no one is placed
                                 if placed_df.empty:
                                     st.warning("No students met the criteria for placement in this batch.")
+
                                 else:
                                     st.write(f"🎉 Found **{len(placed_df)}** Placed students:")
-                                    
-                                    # Display and download only the filtered dataframe
                                     st.dataframe(placed_df, width="stretch")
-
                                     csv = placed_df.to_csv(index=True).encode('utf-8')
                                     st.download_button(
                                         "📥 Export Placed Students (CSV)", 
@@ -427,8 +394,6 @@ def display_dashboard():
                 
                 st.markdown("---")
                 st.subheader("🎯 System Prediction")
-                
-                # Use clean metric cards for the ML result
                 c1, c2, c3 = st.columns([1,1,2])
                 c1.metric("Optimal Role", predicted_role)
                 c2.metric("Model Confidence", f"{confidence}%")
@@ -463,9 +428,7 @@ def display_dashboard():
         st.header("📊 Student Performance Early Warning System")
         st.write("Upload a batch of student records to predict academic outcomes and identify students requiring early intervention.")    
 
-        # 1. File Uploader
         uploaded_file = st.file_uploader("Upload Student Data (.csv)", type=["csv",'xlsx'], key="student_uploader")
-
         if uploaded_file is not None:
             if uploaded_file.name.endswith('.csv'):
                 df = pd.read_csv(uploaded_file)
@@ -476,10 +439,8 @@ def display_dashboard():
             with st.expander("Preview Raw Data"):
                 st.dataframe(df.head())
             
-            # 2. Run Analysis Button
             if st.button("Run Performance Predictions", type="primary", use_container_width=True):
                 with st.spinner("Analyzing student metrics..."):
-                    # Run the AI Engine
                     predictor = StudentPredictor()
                     results_df, status = predictor.predict_performance(df)
 
@@ -488,12 +449,11 @@ def display_dashboard():
                         
                         # 3. Color Coding Function
                         def color_status(val):
-                            if val == 'At Risk': return 'background-color: #ff4b4b; color: white; font-weight: bold' # Red
-                            elif val == 'Excellent': return 'background-color: #00cc66; color: white' # Green
-                            elif val == 'Good': return 'background-color: #1f77b4; color: white' # Blue
-                            return '' # Average stays default
+                            if val == 'At Risk': return 'background-color: #ff4b4b; color: white; font-weight: bold' 
+                            elif val == 'Excellent': return 'background-color: #00cc66; color: white' 
+                            elif val == 'Good': return 'background-color: #1f77b4; color: white' 
+                            return '' 
                         
-                        # Apply colors to the dataframe safely
                         try:
                             styled_df = results_df.style.map(color_status, subset=['Predicted_Status']).format({'previous_semester_sgpa': '{:.2f}'})
                         except AttributeError:
@@ -504,8 +464,7 @@ def display_dashboard():
 
                         # 4. Show Distribution Chart
                         st.subheader("📈 Cohort Distribution")
-                        c1, c2 = st.columns([1, 2])
-                        
+                        c1, c2 = st.columns([1, 2])                       
                         status_counts = results_df['Predicted_Status'].value_counts().reset_index()
                         status_counts.columns = ['Status', 'Count']
 
@@ -522,7 +481,6 @@ def display_dashboard():
         st.title("📚 AI Course Recommender")
         st.markdown("Chat with our AI to get personalized course recommendations based on your desired skills, budget, and availability.")
 
-        # Check for API Key in environment or ask via sidebar
         if "GOOGLE_API_KEY" not in os.environ:
             st.sidebar.header("Configuration")
             st.sidebar.warning("API Key required for generative features.")
@@ -539,19 +497,16 @@ def display_dashboard():
             if rag_chain is None:
                 st.error(status)
             else:
-                # Initialize chat history specifically for the course recommender
                 if "course_messages" not in st.session_state:
                     st.session_state.course_messages = []
 
                 chat_container = st.container(border=True, height=400)
 
                 with chat_container:
-                    # Display chat messages from history on app rerun
                     for message in st.session_state.course_messages:
                         with st.chat_message(message["role"]):
                             st.markdown(message["content"])
 
-                # React to user input
                 if prompt := st.chat_input("E.g., I need a beginner web dev course under $50"):
                     
                     with chat_container:
@@ -560,7 +515,6 @@ def display_dashboard():
 
                     with st.spinner("Searching for the best courses..."):
                         try:
-                            # Get response from RAG
                             response = rag_chain.invoke({"input": prompt})
                             answer = response["answer"]
                             
@@ -574,29 +528,25 @@ def display_dashboard():
 
                 
 
-# --- MAIN APP LOGIC (LOGIN / REGISTRATION) ---
+# --- MAIN APP LOGIC
 def main():
     if 'logged_in' not in st.session_state:
         st.session_state['logged_in'] = False
 
     if not st.session_state['logged_in']:
-        # Center the login panel cleanly
         _, col, _ = st.columns([1, 1.5, 1])
         with col:
-            st.write("") # Spacer
+            st.write("")
             st.write("") 
-            
-            # Adapted Hero Section for universal theme compatibility
             st.markdown("<h1 style='text-align: center;'>🎓 EduPulse System</h1>", unsafe_allow_html=True)
             st.markdown("<p style='text-align: center; font-size: 18px;'>AI-Powered Career & Placement Analytics</p>", unsafe_allow_html=True)
             st.markdown("<p style='text-align: center; font-size: 14px; opacity: 0.6; margin-bottom: 20px;'>Authenticate to access your workspace.</p>", unsafe_allow_html=True)
             
-            # Use Streamlit's native container border to make the login box look like a card
             with st.container(border=True):
                 tab_login, tab_signup, tab_forgot = st.tabs(["🔐 Login", "📝 Register", "🔑 Reset"])
 
                 with tab_login:
-                    st.write("") # Spacer
+                    st.write("")
                     email = st.text_input("Institutional Email", key="l_email", placeholder="user@domain.com")
                     password = st.text_input("Passphrase", type='password', key="l_pass")
                     
@@ -642,12 +592,9 @@ def main():
 
                 with tab_forgot:
                     st.write("")
-                    
-                    # Initialize session states for the password reset flow
                     if 'reset_stage' not in st.session_state:
                         st.session_state['reset_stage'] = 'request'
 
-                    # STAGE 1: Ask for Email
                     if st.session_state['reset_stage'] == 'request':
                         email_to_reset = st.text_input("Registered Email Address", key="f_email")
                         
@@ -656,14 +603,9 @@ def main():
                                 st.warning("Please enter your email address.")
                             else:
                                 with st.spinner("Generating secure token and contacting email servers..."):
-                                    # Generate a random 6-digit code
                                     otp = str(random.randint(100000, 999999))
-                                    
-                                    # Send the email
                                     email_sent = send_otp_email(email_to_reset, otp)
-                                    
                                     if email_sent:
-                                        # Save the email and OTP in memory to check later
                                         st.session_state['reset_email'] = email_to_reset
                                         st.session_state['valid_otp'] = otp
                                         st.session_state['reset_stage'] = 'verify'
@@ -671,7 +613,6 @@ def main():
                                     else:
                                         st.error("System Error: Unable to send email. Contact Administrator.")
 
-                    # STAGE 2: Verify OTP and Reset
                     elif st.session_state['reset_stage'] == 'verify':
                         st.info(f"📧 Recovery token dispatched to **{st.session_state['reset_email']}**")
                         
@@ -696,13 +637,11 @@ def main():
 
                             
                                     else:
-                                        # Hash new password and update database
                                         new_hashed = db.make_hashes(new_password)
                                         success = db.update_password(st.session_state['reset_email'], new_hashed)
                                         
                                         if success:
                                             st.success("✅ Password successfully updated. Please return to the Login tab.")
-                                            # Reset the stage so the form goes back to normal
                                             st.session_state['reset_stage'] = 'request'
                                         else:
                                             st.error("Database Error: Could not update password.")
