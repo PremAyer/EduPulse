@@ -7,12 +7,15 @@ def get_rag_chain(retriever):
     """Sets up the LLM and the Retrieval QA Chain."""
     llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.3)
     
-    system_prompt = (
-        "You are an expert academic advisor. "
-        "Use the following pieces of retrieved course context to recommend the best "
-        "options to the user. Do not make up any courses. Only recommend from the provided context.\n"
-        "Explain WHY each course fits their specific request based on duration, level, or price.\n\n"
-        "Context: {context}"
+    system_prompt = (""" You are an expert career counselor for EduPulse. 
+                     Use the following pieces of retrieved context to recommend courses:
+                    {context}
+
+                   Special Instructions:
+                   1. If the user asks for free options, specifically recommend 2-3 high-quality YouTube channels or specific tutorial series relevant to their query (e.g., 'Programming with Mosh' for Web Dev, or 'Krish Naik' for Data Science).
+                   2. Always provide a 'Learning Path' that combines the paid courses found in our database with these free YouTube resources.
+                   3. Be encouraging and concise.
+                   "Context: {context}"""  
     )
     
     prompt = ChatPromptTemplate.from_messages([
