@@ -8,7 +8,6 @@ def load_course_data(file_path: str):
     except FileNotFoundError:
         return None
     
-    # Combine relevant columns into a single descriptive string
     df['page_content'] = df.apply(
         lambda row: f"Course Title: {row['course_title']}\n"
                     f"Subject: {row['subject']}\n"

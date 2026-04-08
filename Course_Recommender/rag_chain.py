@@ -5,7 +5,6 @@ from langchain_classic.chains import create_retrieval_chain
 
 def get_rag_chain(retriever):
     """Sets up the LLM and the Retrieval QA Chain."""
-    # Initialize Gemini
     llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.3)
     
     system_prompt = (
@@ -21,7 +20,6 @@ def get_rag_chain(retriever):
         ("human", "{input}")
     ])
     
-    # Combine documents and LLM
     question_answer_chain = create_stuff_documents_chain(llm, prompt)
     rag_chain = create_retrieval_chain(retriever, question_answer_chain)
     

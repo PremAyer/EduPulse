@@ -1,4 +1,3 @@
-# src/email_service.py
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -18,7 +17,6 @@ def send_otp_email(receiver_email, otp_code):
     msg['To'] = receiver_email
     msg['Subject'] = "EduPulse System - Password Recovery"
 
-    # HTML Email Body for a professional look
     body = f"""
     <html>
         <body>
@@ -32,7 +30,6 @@ def send_otp_email(receiver_email, otp_code):
     msg.attach(MIMEText(body, 'html'))
 
     try:
-        # Connect to Gmail's SMTP server
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
         server.login(sender_email, sender_password)

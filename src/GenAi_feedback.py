@@ -3,12 +3,10 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 from dotenv import load_dotenv
 
-load_dotenv("config/.env")  # Load environment variables from .env file
-
+load_dotenv("config/.env")
 def get_feedback_from_llm(student_data, predicted_status, predicted_salary):
 
     try:
-        # Initialize the LLM (Requires GOOGLE_API_KEY in your environment/.env)
         llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0.7,transport="rest",convert_system_message_to_human=True)
         
         template = """
@@ -37,7 +35,6 @@ def get_feedback_from_llm(student_data, predicted_status, predicted_salary):
             template=template
         )
         
-        # Format the prompt with the data
         formatted_prompt = prompt.format(
             coding_skill_score=student_data['coding_skill_score'],
             aptitude_score=student_data['aptitude_score'],
@@ -49,7 +46,6 @@ def get_feedback_from_llm(student_data, predicted_status, predicted_salary):
             predicted_salary=predicted_salary
         )
         
-        # Call the LLM
         response = llm.invoke(formatted_prompt)
         return response.content
     

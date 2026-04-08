@@ -5,7 +5,6 @@ import os
 
 load_dotenv("config/.env")
 
-
 DB_HOST = os.getenv("DB_HOST")
 DB_USER = os.getenv("DB_USER")
 DB_PASS = os.getenv("DB_PASS")
@@ -16,7 +15,6 @@ def make_hashes(password):
     return hashlib.sha256(str.encode(password)).hexdigest()
 
 def get_connection():
-    # This connects to the database over the internet
     return psycopg2.connect(
         host=DB_HOST,
         user=DB_USER,
@@ -54,28 +52,16 @@ def login_user(username, password):
     conn.close()
     return data
 
-# def update_password(username, new_password):
-#     conn = get_connection()
-#     c = conn.cursor()
-#     c.execute('UPDATE userstable SET password = %s WHERE username = %s', (new_password, username))
-#     conn.commit()
-#     conn.close()
-
 def update_password(email, new_password):
     """Updates the password using raw SQL and returns True on success."""
     try:
         conn = get_connection()
         c = conn.cursor()
-        
-        # Note: Changed 'username' to 'email' to match your login logic!
-        # Make sure your table is actually called 'userstable'
-        c.execute('UPDATE userstable SET password = %s WHERE username = %s', (new_password, email))
-        
+        c.execute('UPDATE userstable SET password = %s WHERE username = %s', (new_password, email))  
         conn.commit()
         conn.close()
-        
-        return True # Tells Streamlit it worked!
+        return True 
         
     except Exception as e:
         print(f"Database Error updating password: {e}")
-        return False # Tells Streamlit it failed!
+        return False 

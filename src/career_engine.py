@@ -26,12 +26,9 @@ class CareerRecommender:
     def train_model(self):
         """Trains the NLP model to predict Job Roles from Skills."""
         if self.df is None: return False
-        
-        # X = Features (Skills string), y = Target (Job Role)
         X = self.df['Skills Needed'].fillna('')
         y = self.df['Job Role']
         
-        # Pipeline: Convert text to numbers (TF-IDF) -> Predict with Random Forest
         self.model = Pipeline([
             ('tfidf', TfidfVectorizer(stop_words='english')),
             ('clf', RandomForestClassifier(n_estimators=200, random_state=42))
@@ -39,7 +36,6 @@ class CareerRecommender:
         
         self.model.fit(X, y)
 
-        # Save model
         os.makedirs(os.path.dirname(self.model_path), exist_ok=True)
         joblib.dump(self.model, self.model_path)
         return True
@@ -47,7 +43,6 @@ class CareerRecommender:
 
     def predict_role(self, user_skills_str):
             """Predicts the best job role based on input skills."""
-            # Auto-train or load if not in memory
             if self.model is None:
                 if os.path.exists(self.model_path):
                     self.model = joblib.load(self.model_path)
@@ -55,11 +50,8 @@ class CareerRecommender:
                     self.train_model()
 
             predicted_role = self.model.predict([user_skills_str])[0]
-            
-            # Get confidence score
             probs = self.model.predict_proba([user_skills_str])[0]
             confidence = max(probs) * 100
-            
             return predicted_role, round(confidence, 2)
     
     
@@ -89,9 +81,7 @@ class CareerRecommender:
             
             if not missing_skills_str:
                 missing_skills_str = "None - Fully Aligned!"
-                
-            # --- THE FIX: Check if this row matches the ML Prediction ---
-            # We use a lowercase check to ensure 'Data Scientist' matches 'data scientist'
+            
             is_primary = 1 if predicted_role.strip().lower() in role.strip().lower() else 0
                 
             results.append({
@@ -99,16 +89,14 @@ class CareerRecommender:
                 "Suggested Role": role,
                 "Match Quotient": match_percentage,
                 "Deficit Analysis (Required Upskilling)": missing_skills_str,
-                "is_primary": is_primary # We use this to sort, but hide it later
+                "is_primary": is_primary
             })
             
         final_df = pd.DataFrame(results)
         
         if not final_df.empty:
             final_df = final_df.sort_values(by=["is_primary", "Match Quotient"], ascending=[False, False])
-            
             final_df = final_df.drop(columns=['is_primary'])
-            
             final_df = final_df.head(top_n)
             
         return final_df
